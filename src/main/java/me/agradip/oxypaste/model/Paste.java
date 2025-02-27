@@ -26,17 +26,22 @@ public class Paste {
     @Column(length = DELETE_KEY_LEN, nullable = false, name = "deletion_key")
     private String deletionKey;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = true) // Allow null for anonymous pastes
+    private User user;
+
     public Paste() {
         this.id = generateRandomId(PASTE_ID_LEN);
         this.createdAt = LocalDateTime.now();
         this.deletionKey = generateRandomId(DELETE_KEY_LEN);
     }
 
-    public Paste(String content) {
+    public Paste(String content, User user) {
         this.id = generateRandomId(PASTE_ID_LEN);
         this.content = content;
         this.createdAt = LocalDateTime.now();
         this.deletionKey = generateRandomId(DELETE_KEY_LEN);
+        this.user = user; // Can be null (for anonymous pastes)
     }
 
     public String getId() {
@@ -57,6 +62,14 @@ public class Paste {
 
     public String getDeletionKey() {
         return deletionKey;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     private String generateRandomId(int len) {

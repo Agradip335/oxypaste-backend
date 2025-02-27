@@ -39,7 +39,7 @@ public class Responses {
 
     // Paste-related responses
     public record PasteCreatedResponse(String id, LocalDateTime createdAt, String deletionKey) {}
-    public record PasteRetrieveResponse(String id, LocalDateTime createdAt, String content) {}
+    public record PasteRetrieveResponse(String id, String createdBy, LocalDateTime createdAt, String content) {}
 
     // User-related responses
     public record UserCreatedResponse(UUID id, LocalDateTime createdAt) {}

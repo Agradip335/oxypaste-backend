@@ -1,13 +1,14 @@
 package me.agradip.oxypaste.service;
 
 import me.agradip.oxypaste.model.Paste;
+import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.repository.PasteRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
-@Service  // Marks this as a business logic class
+@Service
 public class PasteService {
 
     private final PasteRepository pasteRepository;
@@ -16,10 +17,9 @@ public class PasteService {
         this.pasteRepository = pasteRepository;
     }
 
-    public Paste createPaste(String content) {
-        Paste paste = new Paste();
-        paste.setContent(content);
-        return pasteRepository.save(paste);  // Saves to DB
+    public Paste createPaste(String content, User user) {
+        Paste paste = new Paste(content, user);
+        return pasteRepository.save(paste);
     }
 
     public Optional<Paste> getPaste(String id) {

@@ -69,6 +69,10 @@ public class Token {
         return user;
     }
 
+    public void setToken(String token) {
+        this.token = token;
+    }
+
     public String getToken() {
         return token;
     }

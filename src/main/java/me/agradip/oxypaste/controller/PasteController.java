@@ -1,12 +1,15 @@
 package me.agradip.oxypaste.controller;
 
 import me.agradip.oxypaste.model.Paste;
+import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.service.PasteService;
 import me.agradip.oxypaste.controller.Responses.ApiResponse;
+import me.agradip.oxypaste.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Optional;
 
 @RestController
@@ -14,19 +17,30 @@ import java.util.Optional;
 public class PasteController {
 
     private final PasteService pasteService;
+    private final UserService userService;
 
-    public PasteController(PasteService pasteService) {
+    public PasteController(PasteService pasteService, UserService userService) {
         this.pasteService = pasteService;
+        this.userService = userService;
     }
 
     // Create a new paste
     @PostMapping
-    public ResponseEntity<ApiResponse<?>> createPaste(@RequestBody String content) {
+    public ResponseEntity<ApiResponse<?>> createPaste(Principal principal, @RequestBody String content) {
         if (content == null || content.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(ApiResponse.failure("Content cannot be empty"));
         }
 
-        Paste createdPaste = pasteService.createPaste(content);
+        User user = null;
+
+        // If the request is authenticated, get the user
+        if (principal != null) {
+            String username = principal.getName();
+            user = userService.getUserByUsername(username).orElse(null);
+        }
+
+        Paste createdPaste = pasteService.createPaste(content, user); // Allow user to be null for anonymous pastes
+
         Responses.PasteCreatedResponse response = new Responses.PasteCreatedResponse(
                 createdPaste.getId(), createdPaste.getCreatedAt(), createdPaste.getDeletionKey()
         );
@@ -34,13 +48,14 @@ public class PasteController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+
     // Retrieve a paste
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Responses.PasteRetrieveResponse>> getPaste(@PathVariable String id) {
         return pasteService.getPaste(id)
                 .map(paste -> {
                     Responses.PasteRetrieveResponse response = new Responses.PasteRetrieveResponse(
-                            paste.getId(), paste.getCreatedAt(), paste.getContent()
+                            paste.getId(), paste.getUser() == null ? null : paste.getUser().getId().toString(), paste.getCreatedAt(), paste.getContent()
                     );
                     return ResponseEntity.ok(ApiResponse.success(response));
                 })

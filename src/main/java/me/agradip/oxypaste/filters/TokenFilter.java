@@ -24,36 +24,40 @@ public class TokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        if(!request.getRequestURI().startsWith("/api/user/token/")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
 
-        // Extract the Bearer token from the Authorization header
+        String requestURI = request.getRequestURI();
         String authorizationHeader = request.getHeader("Authorization");
-        if (authorizationHeader == null && !authorizationHeader.startsWith("Bearer ")) {
-            response.sendError(401);
-            return;
+
+        // 1. Require authentication for /api/user/token/**
+        if (requestURI.startsWith("/api/user/token/")) {
+            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
+                return;
+            }
         }
 
-        String token = authorizationHeader.substring(7);
+        // 2. Check for Authorization header (if present) on /api/paste/** but do not require it
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7);
 
-        if (!tokenService.isTokenValid(token)) {
-            response.sendError(403);
-            return;
+            if (!tokenService.isTokenValid(token)) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN); // 403 Forbidden
+                return;
+            }
+
+            Optional<User> userOpt = tokenService.getUserFromToken(token);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+
+                // Create an Authentication object and set it in the SecurityContext
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        user.getUsername(), null, null); // Add roles if needed
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
         }
-
-        Optional<User> userOpt = tokenService.getUserFromToken(token);
-        User user = userOpt.get(); // No need to check here, bcs TokenService#getUserFromToken function does that anyway
-
-        // Create an Authentication object and set it in the SecurityContext
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                user.getUsername(), null, null); // You can add authorities/roles here if needed
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // Continue the filter chain
         filterChain.doFilter(request, response);
     }
-
 }
