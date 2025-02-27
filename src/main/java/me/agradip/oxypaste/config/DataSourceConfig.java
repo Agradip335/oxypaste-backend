@@ -14,6 +14,9 @@ public class DataSourceConfig {
     @Value("${spring.datasource.url}")
     private String dataSourceUrl;
 
+    @Value("${spring.datasource.driver-class-name}")
+    private String driverClass;
+
     @Value("${spring.datasource.username:}")
     private String username;
 
@@ -23,15 +26,20 @@ public class DataSourceConfig {
     @Bean
     @Primary
     public DataSource dataSource() {
+        HikariDataSource dataSource = null;
         if (dataSourceUrl.startsWith("jdbc:sqlite")) {
-            return sqliteDataSource();
-        } else if (dataSourceUrl.startsWith("jdbc:mysql")) {
-            return mysqlDataSource();
+            return sqliteDataSource(); // return the sqlite datasource if its sqlite because hikaricp doesn't support sqlite
+        } else if (dataSourceUrl.startsWith("jdbc:mariadb")) {
+            dataSource = (HikariDataSource) mysqlDataSource();
         } else if (dataSourceUrl.startsWith("jdbc:postgresql")) {
-            return postgresDataSource();
+            dataSource = (HikariDataSource) postgresDataSource();
         } else {
             throw new IllegalArgumentException("Unsupported database type: " + dataSourceUrl);
         }
+
+        dataSource.setDriverClassName(driverClass);
+
+        return dataSource;
     }
 
     private DataSource sqliteDataSource() {
@@ -43,7 +51,7 @@ public class DataSourceConfig {
 
     private DataSource mysqlDataSource() {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setDriverClassName("org.mariadb.jdbc.Driver");
+//        dataSource.setDriverClassName("org.mariadb.jdbc.Driver");
         dataSource.setJdbcUrl(dataSourceUrl);
         dataSource.setUsername(username);
         dataSource.setPassword(password);
@@ -52,7 +60,7 @@ public class DataSourceConfig {
 
     private DataSource postgresDataSource() {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setDriverClassName("org.postgresql.Driver");
+//        dataSource.setDriverClassName("org.postgresql.Driver");
         dataSource.setJdbcUrl(dataSourceUrl);
         dataSource.setUsername(username);
         dataSource.setPassword(password);

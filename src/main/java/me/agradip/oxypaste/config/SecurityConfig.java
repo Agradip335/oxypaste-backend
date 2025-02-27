@@ -23,7 +23,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/user/token").authenticated() // Require authentication for this endpoint
+                        .requestMatchers("/api/user/token/**").authenticated() // Require authentication for this endpoint
                         .anyRequest().permitAll() // Allow all other requests without authentication
                 )
                 .addFilterBefore(new TokenFilter(tokenService), BasicAuthenticationFilter.class) // Add custom token filter

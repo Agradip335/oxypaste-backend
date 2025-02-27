@@ -9,7 +9,7 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @Column(nullable = false, updatable = false, unique = true)
+    @Column(nullable = false, updatable = false, unique = true, columnDefinition = "CHAR(36)")
     private UUID id;
 
     @Column(nullable = false, unique = true, length = 50)

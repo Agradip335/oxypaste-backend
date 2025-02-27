@@ -24,6 +24,10 @@ public class TokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        if(!request.getRequestURI().startsWith("/api/user/token/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // Extract the Bearer token from the Authorization header
         String authorizationHeader = request.getHeader("Authorization");
@@ -32,12 +36,10 @@ public class TokenFilter extends OncePerRequestFilter {
             return;
         }
 
-
-
         String token = authorizationHeader.substring(7);
 
         if (!tokenService.isTokenValid(token)) {
-            response.sendError(401);
+            response.sendError(403);
             return;
         }
 
