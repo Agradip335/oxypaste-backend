@@ -37,12 +37,7 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
-    public boolean authenticateUser(String email, String password) {
-        Optional<User> userOptional = userRepository.findByEmail(email);
-        return userOptional.filter(user -> BCrypt.checkpw(password, user.getPassword())).isPresent();
-    }
-
-    public boolean authenticateUserByUsername(String username, String password) {
+    public boolean authenticateUser(String username, String password) {
         Optional<User> userOptional = userRepository.findByUsername(username);
         return userOptional.filter(user -> BCrypt.checkpw(password, user.getPassword())).isPresent();
     }
