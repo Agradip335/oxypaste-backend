@@ -2,6 +2,7 @@ package me.agradip.oxypaste.controller;
 
 import me.agradip.oxypaste.model.Paste;
 import me.agradip.oxypaste.model.User;
+import me.agradip.oxypaste.security.AuthRequired;
 import me.agradip.oxypaste.service.PasteService;
 import me.agradip.oxypaste.controller.Responses.ApiResponse;
 import me.agradip.oxypaste.service.UserService;
@@ -26,6 +27,7 @@ public class PasteController {
 
     // Create a new paste
     @PostMapping
+    @AuthRequired(strict = false)
     public ResponseEntity<ApiResponse<?>> createPaste(Principal principal, @RequestBody String content) {
         if (content == null || content.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(ApiResponse.failure("Content cannot be empty"));

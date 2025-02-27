@@ -93,6 +93,11 @@ public class Token {
         return expiresAt;
     }
 
+    public boolean isExpired() {
+        return expiresAt != null && LocalDateTime.now().isAfter(expiresAt);
+    }
+
+
     public enum TokenType {
         API(0),
         SESSION(1);

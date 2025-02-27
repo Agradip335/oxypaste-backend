@@ -2,6 +2,7 @@ package me.agradip.oxypaste.controller;
 
 import me.agradip.oxypaste.model.Token;
 import me.agradip.oxypaste.model.User;
+import me.agradip.oxypaste.security.AuthRequired;
 import me.agradip.oxypaste.service.TokenService;
 import me.agradip.oxypaste.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ public class UserTokenController {
 
     // Create a new API token
     @PostMapping("/create")
+    @AuthRequired(tokenType = Token.TokenType.SESSION)
     public ResponseEntity<Responses.ApiResponse<Responses.TokenCreatedResponse>> createApiToken(
             Principal principal,
             @RequestParam() String name,
