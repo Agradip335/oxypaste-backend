@@ -1,15 +1,25 @@
 package me.agradip.oxypaste.service;
 
+import me.agradip.oxypaste.config.AppConfig;
 import me.agradip.oxypaste.model.Paste;
 import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.repository.PasteRepository;
+import me.agradip.oxypaste.util.IOUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
+@EnableCaching
 public class PasteService {
+
+    @Autowired
+    private AppConfig appConfig;
 
     private final PasteRepository pasteRepository;
 
@@ -32,5 +42,23 @@ public class PasteService {
 
     public void deletePaste(String id) {
         pasteRepository.delete(pasteRepository.getReferenceById(id));
+    }
+
+    @Cacheable(value = "rootDocumentsCache", key = "#key")
+    public Paste getRootDocument(String key) {
+        String filePath = appConfig.getDocuments().get(key);
+        if (filePath == null) {
+            throw new IllegalArgumentException("Root document with key " + key + " not found.");
+        }
+
+        String content = IOUtil.readFileSync(new File(filePath));
+        LocalDateTime creationTime = IOUtil.getFileCreationTime(filePath);
+
+        Paste paste = new Paste(key);
+        paste.setContent(content);
+        paste.setPublic();
+        paste.setCreatedAt(creationTime);
+
+        return paste;
     }
 }

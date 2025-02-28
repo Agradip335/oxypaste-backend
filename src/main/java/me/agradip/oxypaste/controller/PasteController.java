@@ -1,17 +1,23 @@
 package me.agradip.oxypaste.controller;
 
+import me.agradip.oxypaste.config.AppConfig;
 import me.agradip.oxypaste.model.Paste;
 import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.security.AuthRequired;
 import me.agradip.oxypaste.service.PasteService;
 import me.agradip.oxypaste.controller.Responses.ApiResponse;
 import me.agradip.oxypaste.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/paste")
@@ -20,13 +26,17 @@ public class PasteController {
     private final PasteService pasteService;
     private final UserService userService;
 
+    @Autowired
+    private AppConfig appConfig;
+
     public PasteController(PasteService pasteService, UserService userService) {
         this.pasteService = pasteService;
+
         this.userService = userService;
     }
 
     // Create a new paste
-    @PostMapping
+    @PostMapping("/")
     @AuthRequired(strict = false)
     public ResponseEntity<ApiResponse<?>> createPaste(Principal principal, @RequestBody String content) {
         if (content == null || content.trim().isEmpty()) {
@@ -52,6 +62,7 @@ public class PasteController {
 
 
     // Retrieve a paste
+    // todo: Support root documents
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Responses.PasteRetrieveResponse>> getPaste(@PathVariable String id) {
         return pasteService.getPaste(id)
@@ -64,6 +75,29 @@ public class PasteController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(ApiResponse.failure("Paste not found")));
     }
+
+    // Get public pastes; todo: Add the public pastes thing, right now only does the root documents; + pagination required; + should have a different response type (not PasteRetrieveResponse)
+    @GetMapping("/public")
+    public ResponseEntity<List<Responses.PasteRetrieveResponse>> getPublicPastes() {
+        Map<String, String> documentPaths = appConfig.getDocuments();
+
+        List<Responses.PasteRetrieveResponse> responseList = documentPaths.entrySet().stream()
+                .map(entry -> {
+                    Paste paste = pasteService.getRootDocument(entry.getKey());
+
+                    return new Responses.PasteRetrieveResponse(
+                            paste.getId(),
+                            "root",
+                            paste.getCreatedAt(),
+                            paste.getContent()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
+    }
+
+
 
     // Delete paste (POST way)
     @DeleteMapping("/{id}")

@@ -18,7 +18,15 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.ehcache:ehcache:3.10.8'
+	implementation 'ch.qos.logback:logback-classic:1.5.17'
+	implementation 'org.slf4j:slf4j-simple'
+
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+	implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2'
+	implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.5'
+
+	implementation 'org.ehcache:ehcache:3.10.8:jakarta'
 
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-web'

@@ -1,6 +1,8 @@
 package me.agradip.oxypaste.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnDefault;
+
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
@@ -27,8 +29,11 @@ public class Paste {
     private String deletionKey;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = true) // Allow null for anonymous pastes
+    @JoinColumn(name = "user_id")
     private User user;
+
+    @Column(name = "public")
+    private boolean publicPaste;
 
     public Paste() {
         this.id = generateRandomId(PASTE_ID_LEN);
@@ -36,12 +41,16 @@ public class Paste {
         this.deletionKey = generateRandomId(DELETE_KEY_LEN);
     }
 
+    public Paste(String id) {
+        this.id = id;
+    }
+
     public Paste(String content, User user) {
         this.id = generateRandomId(PASTE_ID_LEN);
         this.content = content;
         this.createdAt = LocalDateTime.now();
         this.deletionKey = generateRandomId(DELETE_KEY_LEN);
-        this.user = user; // Can be null (for anonymous pastes)
+        this.user = user;
     }
 
     public String getId() {
@@ -54,6 +63,10 @@ public class Paste {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -70,6 +83,18 @@ public class Paste {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public boolean isPublic() {
+        return publicPaste;
+    }
+
+    public void setPublic() {
+        this.publicPaste = true;
+    }
+
+    public void setPrivate() {
+        this.publicPaste = false;
     }
 
     private String generateRandomId(int len) {

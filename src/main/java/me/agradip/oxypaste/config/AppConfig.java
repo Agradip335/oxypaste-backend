@@ -3,17 +3,35 @@ package me.agradip.oxypaste.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Component
-@ConfigurationProperties(prefix = "app")
+@ConfigurationProperties(prefix = "application")
 public class AppConfig {
 
-    private String greeting;
+    private Map<String, String> documents = Map.of();
 
-    public String getGreeting() {
-        return greeting;
+    public Map<String, String> getDocuments() {
+        return documents;
     }
 
-    public void setGreeting(String greeting) {
-        this.greeting = greeting;
+    public void setDocuments(Map<String, String> documents) {
+        this.documents = documents;
+    }
+
+    public static class Document {
+        private String path;
+
+        public Document(String path) {
+            this.path = path;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
+        }
     }
 }

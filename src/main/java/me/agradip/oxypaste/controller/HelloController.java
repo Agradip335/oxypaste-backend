@@ -13,6 +13,6 @@ public class HelloController {
 
     @GetMapping("/hello")
     public String sayHello() {
-        return appConfig.getGreeting();  // Returns the greeting from config.yml
+        return "Hi bruh";
     }
 }
