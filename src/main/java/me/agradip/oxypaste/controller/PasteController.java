@@ -3,11 +3,11 @@ package me.agradip.oxypaste.controller;
 import me.agradip.oxypaste.config.AppConfig;
 import me.agradip.oxypaste.dto.RequestsDto;
 import me.agradip.oxypaste.dto.ResponsesDto;
+import me.agradip.oxypaste.exception.ApiException;
 import me.agradip.oxypaste.model.Paste;
 import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.security.AuthRequired;
 import me.agradip.oxypaste.service.PasteService;
-import me.agradip.oxypaste.dto.ResponsesDto.ApiResponse;
 import me.agradip.oxypaste.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,28 +32,26 @@ public class PasteController {
 
     public PasteController(PasteService pasteService, UserService userService) {
         this.pasteService = pasteService;
-
         this.userService = userService;
     }
 
     // Create a new paste
     @PostMapping
     @AuthRequired(strict = false)
-    public ResponseEntity<ApiResponse<?>> createPaste(Principal principal, @RequestBody RequestsDto.PasteCreateRequest request) {
+    public ResponseEntity<?> createPaste(Principal principal, @RequestBody RequestsDto.PasteCreateRequest request) {
         if (request.content() == null || request.content().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(ApiResponse.failure("Content cannot be empty"));
+            return ResponseEntity.badRequest().body("Content cannot be empty");
         }
 
         User user = null;
 
-        // If the request is authenticated, get the user
         if (principal != null) {
             String username = principal.getName();
             user = userService.getUserByUsername(username).orElse(null);
         }
 
         Paste paste = new Paste(request.content(), user);
-        if(request.isPublic()) paste.setPublic();
+        if (request.isPublic()) paste.setPublic();
 
         Paste createdPaste = pasteService.createPaste(paste);
 
@@ -61,15 +59,12 @@ public class PasteController {
                 createdPaste.getId(), createdPaste.getCreatedAt(), createdPaste.getDeletionKey()
         );
 
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(response);
     }
-
-
 
     // Retrieve a paste
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ResponsesDto.PasteRetrieveResponse>> getPaste(@PathVariable String id) {
-        // Check if the requested ID is a root document
+    public ResponseEntity<?> getPaste(@PathVariable String id) {
         Map<String, String> documentPaths = appConfig.getDocuments();
 
         if (documentPaths.containsKey(id)) {
@@ -82,11 +77,10 @@ public class PasteController {
                         true,
                         rootPaste.getContent()
                 );
-                return ResponseEntity.ok(ApiResponse.success(response));
+                return ResponseEntity.ok(response);
             }
         }
 
-        // Otherwise, fetch regular paste by ID
         return pasteService.getPaste(id)
                 .map(paste -> {
                     ResponsesDto.PasteRetrieveResponse response = new ResponsesDto.PasteRetrieveResponse(
@@ -96,19 +90,16 @@ public class PasteController {
                             paste.isPublic(),
                             paste.getContent()
                     );
-                    return ResponseEntity.ok(ApiResponse.success(response));
+                    return ResponseEntity.ok(response);
                 })
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(ApiResponse.failure("Paste not found")));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Paste Not Found"));
     }
 
-
-    // Get public pastes (including root documents)
+    // Get public pastes
     @GetMapping("/public")
-    public ResponseEntity<ApiResponse<List<ResponsesDto.PasteMetaResponse>>> getPublicPastes() {
+    public ResponseEntity<?> getPublicPastes() {
         Map<String, String> documentPaths = appConfig.getDocuments();
 
-        // Fetch root documents
         List<ResponsesDto.PasteMetaResponse> rootPastes = documentPaths.keySet().stream()
                 .map(s -> {
                     Paste paste = pasteService.getRootDocument(s);
@@ -121,7 +112,6 @@ public class PasteController {
                 })
                 .toList();
 
-        // Fetch public pastes
         List<ResponsesDto.PasteMetaResponse> publicPastes = pasteService.getPublicPastes().stream()
                 .map(paste -> new ResponsesDto.PasteMetaResponse(
                         paste.getId(),
@@ -131,44 +121,40 @@ public class PasteController {
                 ))
                 .toList();
 
-        // Combine both lists
         List<ResponsesDto.PasteMetaResponse> responseList = new ArrayList<>();
         responseList.addAll(rootPastes);
         responseList.addAll(publicPastes);
 
-        return ResponseEntity.ok(ApiResponse.success(responseList));
+        return ResponseEntity.ok(responseList);
     }
-
-
-
 
     // Delete paste (POST way)
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<?>> deletePasteByDelete(@PathVariable String id, @RequestParam(name = "key") String deletionKey) {
+    public ResponseEntity<?> deletePasteByDelete(@PathVariable String id, @RequestParam(name = "key") String deletionKey) {
         return deletePaste(id, deletionKey);
     }
 
     // Delete paste (GET way)
     @GetMapping("/{id}/delete")
-    public ResponseEntity<ApiResponse<?>> deletePasteByGet(@PathVariable String id, @RequestParam(name = "key") String deletionKey) {
+    public ResponseEntity<?> deletePasteByGet(@PathVariable String id, @RequestParam(name = "key") String deletionKey) {
         return deletePaste(id, deletionKey);
     }
 
-    private ResponseEntity<ApiResponse<?>> deletePaste(String id, String deletionKey) {
+    private ResponseEntity<?> deletePaste(String id, String deletionKey) {
         Optional<Paste> optionalPaste = pasteService.getPaste(id);
 
         if (optionalPaste.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.failure("Paste not found"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Paste not found");
         }
 
         Paste paste = optionalPaste.get();
 
         if (!paste.getDeletionKey().equals(deletionKey)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.failure("Invalid deletion key"));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid deletion key");
         }
 
         pasteService.deletePaste(id);
 
-        return ResponseEntity.ok(ApiResponse.success("Paste deleted successfully"));
+        return ResponseEntity.ok("Paste deleted successfully");
     }
 }
