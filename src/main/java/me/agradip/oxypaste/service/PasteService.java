@@ -23,12 +23,12 @@ public class PasteService {
 
     private final PasteRepository pasteRepository;
 
+    @Autowired
     public PasteService(PasteRepository pasteRepository) {
         this.pasteRepository = pasteRepository;
     }
 
-    public Paste createPaste(String content, User user) {
-        Paste paste = new Paste(content, user);
+    public Paste createPaste(Paste paste) {
         return pasteRepository.save(paste);
     }
 
@@ -42,6 +42,10 @@ public class PasteService {
 
     public void deletePaste(String id) {
         pasteRepository.delete(pasteRepository.getReferenceById(id));
+    }
+
+    public List<Paste> getPublicPastes() {
+        return pasteRepository.findByIsPublicTrue();
     }
 
     @Cacheable(value = "rootDocumentsCache", key = "#key")

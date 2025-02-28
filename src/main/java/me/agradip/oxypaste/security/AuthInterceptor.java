@@ -35,14 +35,22 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // Extract token from Authorization header
         String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid Authorization header");
+
+        // If strict authentication is required but no Authorization header is provided, reject request
+        if (annotation.strict() && (authHeader == null || !authHeader.startsWith("Bearer "))) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication required");
             return false;
+        }
+
+        // If no Authorization header is provided and strict auth is false, just proceed without authentication
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return true;
         }
 
         String tokenValue = authHeader.substring(7);
         Optional<Token> tokenOpt = tokenService.getToken(tokenValue);
 
+        // If token is invalid, reject request in all cases
         if (tokenOpt.isEmpty()) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
             return false;
@@ -56,14 +64,14 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // Enforce token type
+        // Enforce token type if strict authentication is enabled
         if (annotation.strict() && userToken.getType() != annotation.tokenType()) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid token type for this action");
             return false;
         }
 
+        // Set user authentication
         User user = userToken.getUser();
-
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(user.getUsername(), null, null);
 
@@ -71,4 +79,5 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         return true;
     }
+
 }

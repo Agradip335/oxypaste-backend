@@ -1,5 +1,6 @@
 package me.agradip.oxypaste.controller;
 
+import me.agradip.oxypaste.dto.ResponsesDto;
 import me.agradip.oxypaste.model.Token;
 import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.security.AuthRequired;
@@ -26,7 +27,7 @@ public class UserTokenController {
     // Create a new API token
     @PostMapping("/create")
     @AuthRequired(tokenType = Token.TokenType.SESSION)
-    public ResponseEntity<Responses.ApiResponse<Responses.TokenCreatedResponse>> createApiToken(
+    public ResponseEntity<ResponsesDto.ApiResponse<ResponsesDto.TokenCreatedResponse>> createApiToken(
             Principal principal,
             @RequestParam() String name,
             @RequestParam(required = false) String description,
@@ -34,55 +35,58 @@ public class UserTokenController {
     ) {
         Optional<User> userOpt = userService.getUserByUsername(principal.getName());
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(401).body(Responses.ApiResponse.failure("Unauthorized"));
+            return ResponseEntity.status(401).body(ResponsesDto.ApiResponse.failure("Unauthorized"));
         }
 
         Token token = tokenService.createToken(userOpt.get(), Token.TokenType.API, name, description, duration);
-        return ResponseEntity.ok(Responses.ApiResponse.success(new Responses.TokenCreatedResponse(token.getToken())));
+        return ResponseEntity.ok(ResponsesDto.ApiResponse.success(new ResponsesDto.TokenCreatedResponse(token.getToken())));
     }
 
     // List all API tokens
     @GetMapping("/list")
-    public ResponseEntity<Responses.ApiResponse<List<Responses.TokenViewResponse>>> listApiTokens(Principal principal) {
+    @AuthRequired(tokenType = Token.TokenType.SESSION)
+    public ResponseEntity<ResponsesDto.ApiResponse<List<ResponsesDto.TokenViewResponse>>> listApiTokens(Principal principal) {
         Optional<User> userOpt = userService.getUserByUsername(principal.getName());
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(401).body(Responses.ApiResponse.failure("Unauthorized"));
+            return ResponseEntity.status(401).body(ResponsesDto.ApiResponse.failure("Unauthorized"));
         }
 
-        List<Responses.TokenViewResponse> tokens = tokenService.getTokensForUser(userOpt.get())
+        List<ResponsesDto.TokenViewResponse> tokens = tokenService.getTokensForUser(userOpt.get())
                 .stream()
                 .filter(token -> token.getType() == Token.TokenType.API) // Only return API tokens
-                .map(token -> new Responses.TokenViewResponse(token.getName(), token.getCreatedAt(), token.getExpiresAt()))
+                .map(token -> new ResponsesDto.TokenViewResponse(token.getName(), token.getCreatedAt(), token.getExpiresAt()))
                 .toList();
 
-        return ResponseEntity.ok(Responses.ApiResponse.success(tokens));
+        return ResponseEntity.ok(ResponsesDto.ApiResponse.success(tokens));
     }
 
     // Revoke a specific API token
     @DeleteMapping("/revoke")
-    public ResponseEntity<Responses.ApiResponse<Void>> revokeApiToken(Principal principal, @RequestParam String token) {
+    @AuthRequired(tokenType = Token.TokenType.SESSION)
+    public ResponseEntity<ResponsesDto.ApiResponse<Void>> revokeApiToken(Principal principal, @RequestParam String token) {
         Optional<User> userOpt = userService.getUserByEmail(principal.getName());
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(401).body(Responses.ApiResponse.failure("Unauthorized"));
+            return ResponseEntity.status(401).body(ResponsesDto.ApiResponse.failure("Unauthorized"));
         }
 
         boolean revoked = tokenService.revokeToken(userOpt.get(), token);
         if (!revoked) {
-            return ResponseEntity.status(404).body(Responses.ApiResponse.failure("Token not found or unauthorized"));
+            return ResponseEntity.status(404).body(ResponsesDto.ApiResponse.failure("Token not found or unauthorized"));
         }
 
-        return ResponseEntity.ok(Responses.ApiResponse.success(null));
+        return ResponseEntity.ok(ResponsesDto.ApiResponse.success(null));
     }
 
     // Revoke all API tokens for the user
     @DeleteMapping("/revoke-all")
-    public ResponseEntity<Responses.ApiResponse<Void>> revokeAllApiTokens(Principal principal) {
+    @AuthRequired(tokenType = Token.TokenType.SESSION)
+    public ResponseEntity<ResponsesDto.ApiResponse<Void>> revokeAllApiTokens(Principal principal) {
         Optional<User> userOpt = userService.getUserByEmail(principal.getName());
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(401).body(Responses.ApiResponse.failure("Unauthorized"));
+            return ResponseEntity.status(401).body(ResponsesDto.ApiResponse.failure("Unauthorized"));
         }
 
         tokenService.revokeAllTokens(userOpt.get());
-        return ResponseEntity.ok(Responses.ApiResponse.success(null));
+        return ResponseEntity.ok(ResponsesDto.ApiResponse.success(null));
     }
 }

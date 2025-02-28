@@ -1,6 +1,7 @@
 package me.agradip.oxypaste.controller;
 
 import me.agradip.oxypaste.Utils;
+import me.agradip.oxypaste.dto.ResponsesDto;
 import me.agradip.oxypaste.model.Token;
 import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.service.TokenService;
@@ -26,7 +27,7 @@ public class UserController {
     }
 
     @PostMapping(value = "/create", consumes = "multipart/form-data")
-    public ResponseEntity<Responses.ApiResponse<Responses.UserCreatedResponse>> createAccount(MultipartHttpServletRequest request) {
+    public ResponseEntity<ResponsesDto.ApiResponse<ResponsesDto.UserCreatedResponse>> createAccount(MultipartHttpServletRequest request) {
         Map<String, String[]> params = request.getParameterMap();
 
         String username = getParam(params, "username");
@@ -35,36 +36,36 @@ public class UserController {
         String creationIp = request.getRemoteAddr();
 
         if (username == null || email == null || password == null) {
-            return ResponseEntity.badRequest().body(Responses.ApiResponse.failure("Missing required fields"));
+            return ResponseEntity.badRequest().body(ResponsesDto.ApiResponse.failure("Missing required fields"));
         }
         if (userService.getUserByUsername(username).isPresent() || userService.getUserByEmail(email).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Responses.ApiResponse.failure("An account with that username or email already exists"));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponsesDto.ApiResponse.failure("An account with that username or email already exists"));
         }
 
         User user = userService.registerUser(username, email, password, creationIp);
-        return ResponseEntity.ok(Responses.ApiResponse.success(new Responses.UserCreatedResponse(user.getId(), user.getCreatedAt())));
+        return ResponseEntity.ok(ResponsesDto.ApiResponse.success(new ResponsesDto.UserCreatedResponse(user.getId(), user.getCreatedAt())));
     }
 
     @PostMapping(value = "/login", consumes = "multipart/form-data")
-    public ResponseEntity<Responses.ApiResponse<Responses.LoginResponse>> login(@RequestHeader("User-Agent") String useragent, MultipartHttpServletRequest request) {
+    public ResponseEntity<ResponsesDto.ApiResponse<ResponsesDto.LoginResponse>> login(@RequestHeader("User-Agent") String useragent, MultipartHttpServletRequest request) {
         Map<String, String[]> params = request.getParameterMap();
 
         String username = getParam(params, "username");
         String password = getParam(params, "password");
 
         if (username == null || password == null) {
-            return ResponseEntity.badRequest().body(Responses.ApiResponse.failure("Missing required fields"));
+            return ResponseEntity.badRequest().body(ResponsesDto.ApiResponse.failure("Missing required fields"));
         }
 
         Optional<User> userOpt = userService.getUserByUsername(username);
 
-        if(!userOpt.isPresent()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Responses.ApiResponse.failure("User not found"));
-        if (!userService.authenticateUser(username, password)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Responses.ApiResponse.failure("Invalid credentials"));
+        if(!userOpt.isPresent()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponsesDto.ApiResponse.failure("User not found"));
+        if (!userService.authenticateUser(username, password)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ResponsesDto.ApiResponse.failure("Invalid credentials"));
 
         User user = userOpt.get();
         Token sessionToken = tokenService.createToken(user, Token.TokenType.SESSION, Utils.generateRandom(4), String.format("Created with User-Agent %s - IP Address - %s", useragent, request.getRemoteAddr()), (long) (30 * 60)); // change expiry later
 
-        return ResponseEntity.ok(Responses.ApiResponse.success(new Responses.LoginResponse(sessionToken.getToken(), sessionToken.getExpiresAt())));
+        return ResponseEntity.ok(ResponsesDto.ApiResponse.success(new ResponsesDto.LoginResponse(sessionToken.getToken(), sessionToken.getExpiresAt())));
     }
 
     private String getParam(Map<String, String[]> params, String key) {

@@ -1,9 +1,9 @@
-package me.agradip.oxypaste.controller;
+package me.agradip.oxypaste.dto;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class Responses {
+public class ResponsesDto {
 
     public static class ApiResponse<T> {
         private final boolean success;
@@ -39,7 +39,8 @@ public class Responses {
 
     // Paste-related responses
     public record PasteCreatedResponse(String id, LocalDateTime createdAt, String deletionKey) {}
-    public record PasteRetrieveResponse(String id, String createdBy, LocalDateTime createdAt, String content) {}
+    public record PasteMetaResponse(String id, String createdBy, LocalDateTime createdAt, boolean isPublic) {}
+    public record PasteRetrieveResponse(String id, String createdBy, LocalDateTime createdAt, boolean isPublic, String content) {}
 
     // User-related responses
     public record UserCreatedResponse(UUID id, LocalDateTime createdAt) {}

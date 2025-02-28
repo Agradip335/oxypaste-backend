@@ -1,7 +1,6 @@
 package me.agradip.oxypaste.model;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -32,8 +31,8 @@ public class Paste {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(name = "public")
-    private boolean publicPaste;
+    @Column(name = "is_public")
+    private boolean isPublic;
 
     public Paste() {
         this.id = generateRandomId(PASTE_ID_LEN);
@@ -86,15 +85,15 @@ public class Paste {
     }
 
     public boolean isPublic() {
-        return publicPaste;
+        return isPublic;
     }
 
     public void setPublic() {
-        this.publicPaste = true;
+        this.isPublic = true;
     }
 
     public void setPrivate() {
-        this.publicPaste = false;
+        this.isPublic = false;
     }
 
     private String generateRandomId(int len) {

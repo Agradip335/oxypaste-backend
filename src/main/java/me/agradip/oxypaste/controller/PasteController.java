@@ -1,11 +1,13 @@
 package me.agradip.oxypaste.controller;
 
 import me.agradip.oxypaste.config.AppConfig;
+import me.agradip.oxypaste.dto.RequestsDto;
+import me.agradip.oxypaste.dto.ResponsesDto;
 import me.agradip.oxypaste.model.Paste;
 import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.security.AuthRequired;
 import me.agradip.oxypaste.service.PasteService;
-import me.agradip.oxypaste.controller.Responses.ApiResponse;
+import me.agradip.oxypaste.dto.ResponsesDto.ApiResponse;
 import me.agradip.oxypaste.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,11 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/paste")
@@ -36,10 +37,10 @@ public class PasteController {
     }
 
     // Create a new paste
-    @PostMapping("/")
+    @PostMapping
     @AuthRequired(strict = false)
-    public ResponseEntity<ApiResponse<?>> createPaste(Principal principal, @RequestBody String content) {
-        if (content == null || content.trim().isEmpty()) {
+    public ResponseEntity<ApiResponse<?>> createPaste(Principal principal, @RequestBody RequestsDto.PasteCreateRequest request) {
+        if (request.content() == null || request.content().trim().isEmpty()) {
             return ResponseEntity.badRequest().body(ApiResponse.failure("Content cannot be empty"));
         }
 
@@ -51,9 +52,12 @@ public class PasteController {
             user = userService.getUserByUsername(username).orElse(null);
         }
 
-        Paste createdPaste = pasteService.createPaste(content, user); // Allow user to be null for anonymous pastes
+        Paste paste = new Paste(request.content(), user);
+        if(request.isPublic()) paste.setPublic();
 
-        Responses.PasteCreatedResponse response = new Responses.PasteCreatedResponse(
+        Paste createdPaste = pasteService.createPaste(paste);
+
+        ResponsesDto.PasteCreatedResponse response = new ResponsesDto.PasteCreatedResponse(
                 createdPaste.getId(), createdPaste.getCreatedAt(), createdPaste.getDeletionKey()
         );
 
@@ -61,14 +65,36 @@ public class PasteController {
     }
 
 
+
     // Retrieve a paste
-    // todo: Support root documents
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Responses.PasteRetrieveResponse>> getPaste(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<ResponsesDto.PasteRetrieveResponse>> getPaste(@PathVariable String id) {
+        // Check if the requested ID is a root document
+        Map<String, String> documentPaths = appConfig.getDocuments();
+
+        if (documentPaths.containsKey(id)) {
+            Paste rootPaste = pasteService.getRootDocument(id);
+            if (rootPaste != null) {
+                ResponsesDto.PasteRetrieveResponse response = new ResponsesDto.PasteRetrieveResponse(
+                        rootPaste.getId(),
+                        "root",
+                        rootPaste.getCreatedAt(),
+                        true,
+                        rootPaste.getContent()
+                );
+                return ResponseEntity.ok(ApiResponse.success(response));
+            }
+        }
+
+        // Otherwise, fetch regular paste by ID
         return pasteService.getPaste(id)
                 .map(paste -> {
-                    Responses.PasteRetrieveResponse response = new Responses.PasteRetrieveResponse(
-                            paste.getId(), paste.getUser() == null ? null : paste.getUser().getId().toString(), paste.getCreatedAt(), paste.getContent()
+                    ResponsesDto.PasteRetrieveResponse response = new ResponsesDto.PasteRetrieveResponse(
+                            paste.getId(),
+                            paste.getUser() == null ? null : paste.getUser().getId().toString(),
+                            paste.getCreatedAt(),
+                            paste.isPublic(),
+                            paste.getContent()
                     );
                     return ResponseEntity.ok(ApiResponse.success(response));
                 })
@@ -76,26 +102,43 @@ public class PasteController {
                         .body(ApiResponse.failure("Paste not found")));
     }
 
-    // Get public pastes; todo: Add the public pastes thing, right now only does the root documents; + pagination required; + should have a different response type (not PasteRetrieveResponse)
+
+    // Get public pastes (including root documents)
     @GetMapping("/public")
-    public ResponseEntity<List<Responses.PasteRetrieveResponse>> getPublicPastes() {
+    public ResponseEntity<ApiResponse<List<ResponsesDto.PasteMetaResponse>>> getPublicPastes() {
         Map<String, String> documentPaths = appConfig.getDocuments();
 
-        List<Responses.PasteRetrieveResponse> responseList = documentPaths.entrySet().stream()
-                .map(entry -> {
-                    Paste paste = pasteService.getRootDocument(entry.getKey());
-
-                    return new Responses.PasteRetrieveResponse(
+        // Fetch root documents
+        List<ResponsesDto.PasteMetaResponse> rootPastes = documentPaths.keySet().stream()
+                .map(s -> {
+                    Paste paste = pasteService.getRootDocument(s);
+                    return new ResponsesDto.PasteMetaResponse(
                             paste.getId(),
                             "root",
                             paste.getCreatedAt(),
-                            paste.getContent()
+                            true
                     );
                 })
-                .collect(Collectors.toList());
+                .toList();
 
-        return ResponseEntity.ok(responseList);
+        // Fetch public pastes
+        List<ResponsesDto.PasteMetaResponse> publicPastes = pasteService.getPublicPastes().stream()
+                .map(paste -> new ResponsesDto.PasteMetaResponse(
+                        paste.getId(),
+                        paste.getUser() == null ? null : paste.getUser().getId().toString(),
+                        paste.getCreatedAt(),
+                        true
+                ))
+                .toList();
+
+        // Combine both lists
+        List<ResponsesDto.PasteMetaResponse> responseList = new ArrayList<>();
+        responseList.addAll(rootPastes);
+        responseList.addAll(publicPastes);
+
+        return ResponseEntity.ok(ApiResponse.success(responseList));
     }
+
 
 
 
