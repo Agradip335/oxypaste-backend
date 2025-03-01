@@ -22,6 +22,7 @@ import me.agradip.oxypaste.service.UserService;
 import me.agradip.oxypaste.util.RestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -51,12 +52,22 @@ public class PasteController {
     // Create a new paste
     @PostMapping
     @AuthRequired(strict = false)
-    @Operation(summary = "Create paste", description = "Add a new paste")
+    @Operation(
+            summary = "Create a new paste",
+            description = """
+        Creates a new paste.
+
+        - **Authorization is optional.**  
+        - If an **Authorization** token is provided, the paste will be associated with the authenticated user.  
+        - If no token is provided, the paste is created anonymously.
+        """,
+            security = @SecurityRequirement(name = "BearerAuthentication")
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200",
-                    content = @Content(schema = @Schema(implementation = ResponsesDto.PasteCreatedResponse.class))),
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ResponsesDto.PasteCreatedResponse.class))),
             @ApiResponse(responseCode = "400",
-                    content = @Content(schema = @Schema(implementation = ResponsesDto.ErrorResponse.class)))
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ResponsesDto.ErrorResponse.class)))
     })
     public ResponseEntity<?> createPaste(Principal principal, @RequestBody RequestsDto.PasteCreateRequest request) {
         if (request.content() == null || request.content().trim().isEmpty()) throw new EmptyContentException();
@@ -78,11 +89,11 @@ public class PasteController {
     // Retrieve a paste
     @GetMapping("/{id}")
     @Operation(
-            summary = "Get paste meta"
+            summary = "Get paste"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation = ResponsesDto.PasteRetrieveResponse.class))),
-            @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = ResponsesDto.ErrorResponse.class)))
+            @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ResponsesDto.PasteRetrieveResponse.class))),
+            @ApiResponse(responseCode = "404", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ResponsesDto.ErrorResponse.class)))
     })
     public ResponsesDto.PasteRetrieveResponse getPaste(@PathVariable String id) {
         Map<String, String> documentPaths = appConfig.getDocuments();
@@ -119,7 +130,7 @@ public class PasteController {
     @GetMapping("/list")
     @Operation(summary = "Get public pastes")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ResponsesDto.PasteMetaResponse.class)))),
+            @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = ResponsesDto.PasteMetaResponse.class)))),
     })
     public List<ResponsesDto.PasteMetaResponse> getPublicPastes() {
         Map<String, String> documentPaths = appConfig.getDocuments();
@@ -155,10 +166,10 @@ public class PasteController {
     // Delete paste
     @DeleteMapping("/{id}")
     @AuthRequired
-    @Operation(summary = "Delete a paste", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Delete a paste", security = @SecurityRequirement(name = "BearerAuthentication"))
     @ApiResponses({
-            @ApiResponse(responseCode = "200"),
-            @ApiResponse(responseCode = "403")
+            @ApiResponse(responseCode = "204"),
+            @ApiResponse(responseCode = "403", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ResponsesDto.ErrorResponse.class)))
     })
     public ResponseEntity<?> deletePaste(@PathVariable String id) {
         Optional<Paste> optionalPaste = pasteService.getPaste(id);
@@ -175,6 +186,6 @@ public class PasteController {
         pasteService.deletePaste(id);
 
 //        return ResponseEntity.ok().header("content-type:application/json").body("{}");
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
