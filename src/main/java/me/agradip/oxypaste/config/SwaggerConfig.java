@@ -1,10 +1,13 @@
 package me.agradip.oxypaste.config;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.ComposedSchema;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import me.agradip.oxypaste.dto.ResponsesDto;
 import me.agradip.oxypaste.util.IOUtil;
 import me.agradip.oxypaste.util.StringUtils;
@@ -14,6 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Configuration
@@ -28,6 +32,14 @@ public class SwaggerConfig {
                         .title("OxyPaste API")
                         .version("1.0")
                         .description(IOUtil.readResourceFromCp("documents/API-DESCRIPTION.md"))
+                ).components(new Components()
+                        .addSecuritySchemes("BearerAuthentication",
+                                new SecurityScheme()
+                                        .name("API")
+                                        .type(SecurityScheme.Type.APIKEY)
+                                        .scheme("bearer")
+                                        .description("Your API Token")
+                        )
                 );
     }
 

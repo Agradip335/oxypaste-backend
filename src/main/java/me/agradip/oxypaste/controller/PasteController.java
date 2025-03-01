@@ -127,15 +127,23 @@ public class PasteController {
     }
 
     // Get public pastes
+    // todo: Add pagination
     @GetMapping("/list")
-    @Operation(summary = "Get public pastes")
+    @Operation(summary = "Get public pastes", description = """
+        Retrieves a `Paste Meta` array of all public pastes.
+
+        - This endpoint returns both root documents (if configured) and user-created public pastes.
+        - The value for the 'createdBy' property will be 'root' if the paste is a root document.
+        - Root documents are predefined in the backend by the sysadmin and always public.
+        - User-created pastes are included if they are marked as public.
+        """)
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = ResponsesDto.PasteMetaResponse.class)))),
     })
     public List<ResponsesDto.PasteMetaResponse> getPublicPastes() {
         Map<String, String> documentPaths = appConfig.getDocuments();
 
-        List<ResponsesDto.PasteMetaResponse> rootPastes = documentPaths.keySet().stream()
+        List<ResponsesDto.PasteMetaResponse> list = documentPaths.keySet().stream()
                 .map(s -> {
                     Paste paste = pasteService.getRootDocument(s);
                     return new ResponsesDto.PasteMetaResponse(
@@ -147,26 +155,29 @@ public class PasteController {
                 })
                 .toList();
 
-        List<ResponsesDto.PasteMetaResponse> publicPastes = pasteService.getPublicPastes().stream()
-                .map(paste -> new ResponsesDto.PasteMetaResponse(
+        pasteService.getPublicPastes().stream()
+                .forEach(paste -> list.add(new ResponsesDto.PasteMetaResponse(
                         paste.getId(),
                         paste.getUser() == null ? null : paste.getUser().getId().toString(),
                         paste.getCreatedAt(),
                         true
-                ))
-                .toList();
+                )));
 
-        List<ResponsesDto.PasteMetaResponse> responseList = new ArrayList<>();
-        responseList.addAll(rootPastes);
-        responseList.addAll(publicPastes);
-
-        return responseList;
+        return list;
     }
 
     // Delete paste
     @DeleteMapping("/{id}")
     @AuthRequired
-    @Operation(summary = "Delete a paste", security = @SecurityRequirement(name = "BearerAuthentication"))
+    @Operation(
+            summary = "Delete a paste",
+            security = @SecurityRequirement(name = "BearerAuthentication"),
+            description = """
+                    Deletes a paste by its unique ID.
+                    
+                    **Authorization is required for this action**
+                    """
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "204"),
             @ApiResponse(responseCode = "403", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ResponsesDto.ErrorResponse.class)))
@@ -185,7 +196,6 @@ public class PasteController {
 
         pasteService.deletePaste(id);
 
-//        return ResponseEntity.ok().header("content-type:application/json").body("{}");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
