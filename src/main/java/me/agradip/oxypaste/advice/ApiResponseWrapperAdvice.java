@@ -10,7 +10,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.converter.HttpMessageConverter;
 
-@ControllerAdvice
+@ControllerAdvice(basePackages = "me.agradip.oxypaste.controller")
 @RestController
 public class ApiResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
 
