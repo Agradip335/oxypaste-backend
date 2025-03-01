@@ -13,14 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class GlobalExceptionHandlerAdvice {
 
     @ExceptionHandler(ApiException.class)
-    public ResponseEntity<ResponsesDto.ApiResponse> handleApiException(ApiException ex) {
-        return ResponseEntity.status(ex.getStatus()).body(ResponsesDto.ApiResponse.failure(ex.getMessage()));
+    public ResponseEntity<ResponsesDto.ErrorResponse> handleApiException(ApiException ex) {
+        return ResponseEntity.status(ex.getStatus()).body(new ResponsesDto.ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ResponsesDto.ApiResponse> handleUnexpectedException(Exception ex) {
+    public ResponseEntity<ResponsesDto.ErrorResponse> handleUnexpectedException(Exception ex) {
         ex.printStackTrace(); // TODO: Replace with logger in production
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ResponsesDto.ApiResponse.failure("An unexpected error took place"));
+                .body(new ResponsesDto.ErrorResponse("An unexpected error took place"));
     }
 }

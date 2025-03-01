@@ -1,43 +1,13 @@
 package me.agradip.oxypaste.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class ResponsesDto {
-
-    public static class ApiResponse<T> {
-        private final boolean success;
-        private final T data;
-        private final String error;
-
-        public ApiResponse(boolean success, T data, String error) {
-            this.success = success;
-            this.data = data;
-            this.error = error;
-        }
-
-        public static <T> ApiResponse<T> success(T data) {
-            return new ApiResponse<>(true, data, null);
-        }
-
-        public static <T> ApiResponse<T> failure(String error) {
-            return new ApiResponse<>(false, null, error);
-        }
-
-        public boolean isSuccess() {
-            return success;
-        }
-
-        public T getData() {
-            return data;
-        }
-
-        public String getError() {
-            return error;
-        }
-    }
-
     // Paste-related responses
+    @Schema(name = "Paste Created", description = "Response when a paste is successfully created")
     public record PasteCreatedResponse(String id, LocalDateTime createdAt, String deletionKey) {}
     public record PasteMetaResponse(String id, String createdBy, LocalDateTime createdAt, boolean isPublic) {}
     public record PasteRetrieveResponse(String id, String createdBy, LocalDateTime createdAt, boolean isPublic, String content) {}
@@ -54,4 +24,6 @@ public class ResponsesDto {
     public record TokenValidationResponse(boolean valid) {}
 
     public record TokenRevokedResponse(boolean revoked) {}
+
+    public record ErrorResponse(String error) {}
 }

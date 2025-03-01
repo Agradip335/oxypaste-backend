@@ -1,5 +1,6 @@
 package me.agradip.oxypaste.exception;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 
 public class ApiException extends RuntimeException {
@@ -8,6 +9,11 @@ public class ApiException extends RuntimeException {
     public ApiException(HttpStatus status, String message) {
         super(message);
         this.status = status;
+    }
+
+    public ApiException(int status, String message) {
+        super(message);
+        this.status = HttpStatus.resolve(status);
     }
 
     public HttpStatus getStatus() {

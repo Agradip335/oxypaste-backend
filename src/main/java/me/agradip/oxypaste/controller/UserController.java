@@ -1,7 +1,9 @@
 package me.agradip.oxypaste.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import me.agradip.oxypaste.Utils;
 import me.agradip.oxypaste.dto.ResponsesDto;
+import me.agradip.oxypaste.exception.ApiException;
 import me.agradip.oxypaste.model.Token;
 import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.service.TokenService;
@@ -27,7 +29,7 @@ public class UserController {
     }
 
     @PostMapping(value = "/create", consumes = "multipart/form-data")
-    public ResponseEntity<ResponsesDto.ApiResponse<ResponsesDto.UserCreatedResponse>> createAccount(MultipartHttpServletRequest request) {
+    public ResponsesDto.UserCreatedResponse createAccount(MultipartHttpServletRequest request, HttpServletResponse response) {
         Map<String, String[]> params = request.getParameterMap();
 
         String username = getParam(params, "username");
@@ -36,36 +38,37 @@ public class UserController {
         String creationIp = request.getRemoteAddr();
 
         if (username == null || email == null || password == null) {
-            return ResponseEntity.badRequest().body(ResponsesDto.ApiResponse.failure("Missing required fields"));
+            throw new ApiException(400, "Missing required fields");
         }
         if (userService.getUserByUsername(username).isPresent() || userService.getUserByEmail(email).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponsesDto.ApiResponse.failure("An account with that username or email already exists"));
+            throw new ApiException(HttpStatus.CONFLICT, "An account with that username or email already exists");
         }
 
         User user = userService.registerUser(username, email, password, creationIp);
-        return ResponseEntity.ok(ResponsesDto.ApiResponse.success(new ResponsesDto.UserCreatedResponse(user.getId(), user.getCreatedAt())));
+        response.setStatus(201);
+        return new ResponsesDto.UserCreatedResponse(user.getId(), user.getCreatedAt());
     }
 
     @PostMapping(value = "/login", consumes = "multipart/form-data")
-    public ResponseEntity<ResponsesDto.ApiResponse<ResponsesDto.LoginResponse>> login(@RequestHeader("User-Agent") String useragent, MultipartHttpServletRequest request) {
+    public ResponsesDto.LoginResponse login(@RequestHeader("User-Agent") String useragent, MultipartHttpServletRequest request) {
         Map<String, String[]> params = request.getParameterMap();
 
         String username = getParam(params, "username");
         String password = getParam(params, "password");
 
         if (username == null || password == null) {
-            return ResponseEntity.badRequest().body(ResponsesDto.ApiResponse.failure("Missing required fields"));
+            throw new ApiException(400, "Missing required fields");
         }
 
         Optional<User> userOpt = userService.getUserByUsername(username);
 
-        if(!userOpt.isPresent()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponsesDto.ApiResponse.failure("User not found"));
-        if (!userService.authenticateUser(username, password)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ResponsesDto.ApiResponse.failure("Invalid credentials"));
+        if(!userOpt.isPresent()) throw new ApiException(404, "User not found");
+        if (!userService.authenticateUser(username, password)) throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
 
         User user = userOpt.get();
         Token sessionToken = tokenService.createToken(user, Token.TokenType.SESSION, Utils.generateRandom(4), String.format("Created with User-Agent %s - IP Address - %s", useragent, request.getRemoteAddr()), (long) (30 * 60)); // change expiry later
 
-        return ResponseEntity.ok(ResponsesDto.ApiResponse.success(new ResponsesDto.LoginResponse(sessionToken.getToken(), sessionToken.getExpiresAt())));
+        return new ResponsesDto.LoginResponse(sessionToken.getToken(), sessionToken.getExpiresAt());
     }
 
     private String getParam(Map<String, String[]> params, String key) {

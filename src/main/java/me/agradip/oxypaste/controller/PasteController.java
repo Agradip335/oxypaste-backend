@@ -1,5 +1,11 @@
 package me.agradip.oxypaste.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import me.agradip.oxypaste.config.AppConfig;
 import me.agradip.oxypaste.dto.RequestsDto;
 import me.agradip.oxypaste.dto.ResponsesDto;
@@ -22,6 +28,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/paste")
+@Tag(name = "Pastes", description = "Endpoints for operating with pastes")
 public class PasteController {
 
     private final PasteService pasteService;
@@ -38,6 +45,13 @@ public class PasteController {
     // Create a new paste
     @PostMapping
     @AuthRequired(strict = false)
+    @Operation(summary = "Create paste", description = "Add a new paste")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Paste successfully created",
+                    content = @Content(schema = @Schema(implementation = ResponsesDto.PasteCreatedResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Bad request - Content cannot be empty",
+                    content = @Content(schema = @Schema(implementation = String.class)))
+    })
     public ResponseEntity<?> createPaste(Principal principal, @RequestBody RequestsDto.PasteCreateRequest request) {
         if (request.content() == null || request.content().trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Content cannot be empty");
