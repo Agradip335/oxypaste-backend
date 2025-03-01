@@ -9,7 +9,16 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "application")
 public class AppConfig {
 
+    private Map<String, String> placeholders = Map.of();
     private Map<String, String> documents = Map.of();
+
+    public Map<String, String> getPlaceholders() {
+        return placeholders;
+    }
+
+    public void setPlaceholders(Map<String, String> placeholders) {
+        this.placeholders = placeholders;
+    }
 
     public Map<String, String> getDocuments() {
         return documents;

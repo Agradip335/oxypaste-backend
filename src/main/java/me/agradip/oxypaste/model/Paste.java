@@ -24,9 +24,6 @@ public class Paste {
     @Column(nullable = false, updatable = false, name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(length = DELETE_KEY_LEN, nullable = false, name = "deletion_key")
-    private String deletionKey;
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -37,7 +34,6 @@ public class Paste {
     public Paste() {
         this.id = generateRandomId(PASTE_ID_LEN);
         this.createdAt = LocalDateTime.now();
-        this.deletionKey = generateRandomId(DELETE_KEY_LEN);
     }
 
     public Paste(String id) {
@@ -48,7 +44,6 @@ public class Paste {
         this.id = generateRandomId(PASTE_ID_LEN);
         this.content = content;
         this.createdAt = LocalDateTime.now();
-        this.deletionKey = generateRandomId(DELETE_KEY_LEN);
         this.user = user;
     }
 
@@ -70,10 +65,6 @@ public class Paste {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
-    }
-
-    public String getDeletionKey() {
-        return deletionKey;
     }
 
     public User getUser() {

@@ -1,11 +1,15 @@
 package me.agradip.oxypaste.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.ComposedSchema;
 import me.agradip.oxypaste.dto.ResponsesDto;
+import me.agradip.oxypaste.util.IOUtil;
+import me.agradip.oxypaste.util.StringUtils;
 import org.springdoc.core.customizers.OpenApiCustomizer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,6 +18,18 @@ import java.util.Map;
 
 @Configuration
 public class SwaggerConfig {
+    @Autowired
+    private AppConfig appConfig;
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("OxyPaste API")
+                        .version("1.0")
+                        .description(IOUtil.readResourceFromCp("documents/API-DESCRIPTION.md"))
+                );
+    }
 
 //    @Bean
 //    public OpenApiCustomizer openApiCustomizer() {

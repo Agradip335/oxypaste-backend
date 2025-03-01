@@ -2,9 +2,11 @@ package me.agradip.oxypaste.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import me.agradip.oxypaste.exception.ApiException;
 import me.agradip.oxypaste.model.Token;
 import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.service.TokenService;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -29,55 +31,49 @@ public class AuthInterceptor implements HandlerInterceptor {
             annotation = method.getMethodAnnotation(AuthRequired.class);
         }
 
-        if (annotation == null) {
-            return true;
-        }
-
-        // Extract token from Authorization header
         String authHeader = request.getHeader("Authorization");
+        boolean hasAuthHeader = authHeader != null && authHeader.startsWith("Bearer ");
 
-        // If strict authentication is required but no Authorization header is provided, reject request
-        if (annotation.strict() && (authHeader == null || !authHeader.startsWith("Bearer "))) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication required");
-            return false;
-        }
+        // If Authorization header is present, validate it
+        if (hasAuthHeader) {
+            String tokenValue = authHeader.substring(7);
 
-        // If no Authorization header is provided and strict auth is false, just proceed without authentication
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            if(tokenValue.isEmpty()) {
+                throw new ApiException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+            }
+
+            Optional<Token> tokenOpt = tokenService.getToken(tokenValue);
+
+            if (tokenOpt.isEmpty()) {
+                throw new ApiException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+            }
+
+            Token userToken = tokenOpt.get();
+
+            if (userToken.isExpired()) {
+                throw new ApiException(HttpStatus.UNAUTHORIZED, "Token has expired");
+            }
+
+            if (annotation != null && userToken.getType() != annotation.tokenType()) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "Invalid token type for this action");
+            }
+
+            // Set user authentication
+            setUserAuthentication(userToken.getUser());
             return true;
         }
 
-        String tokenValue = authHeader.substring(7);
-        Optional<Token> tokenOpt = tokenService.getToken(tokenValue);
-
-        // If token is invalid, reject request in all cases
-        if (tokenOpt.isEmpty()) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
-            return false;
+        // If no Authorization header and endpoint requires strict authentication
+        if (annotation != null && annotation.strict()) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required");
         }
-
-        Token userToken = tokenOpt.get();
-
-        // Check if token is expired
-        if (userToken.isExpired()) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has expired");
-            return false;
-        }
-
-        // Enforce token type if strict authentication is enabled
-        if (annotation.strict() && userToken.getType() != annotation.tokenType()) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid token type for this action");
-            return false;
-        }
-
-        // Set user authentication
-        User user = userToken.getUser();
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(user.getUsername(), null, null);
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return true;
     }
 
+    private void setUserAuthentication(User user) {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(user, null, null);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
 }

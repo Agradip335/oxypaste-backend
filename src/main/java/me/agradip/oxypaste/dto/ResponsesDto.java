@@ -1,5 +1,6 @@
 package me.agradip.oxypaste.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
@@ -7,10 +8,43 @@ import java.util.UUID;
 
 public class ResponsesDto {
     // Paste-related responses
-    @Schema(name = "Paste Created", description = "Response when a paste is successfully created")
-    public record PasteCreatedResponse(String id, LocalDateTime createdAt, String deletionKey) {}
-    public record PasteMetaResponse(String id, String createdBy, LocalDateTime createdAt, boolean isPublic) {}
-    public record PasteRetrieveResponse(String id, String createdBy, LocalDateTime createdAt, boolean isPublic, String content) {}
+    public record PasteCreatedResponse(
+            @Schema(description = "The unique ID of the created paste")
+            String id
+    ) {}
+
+    public record PasteMetaResponse(
+            @Schema(description = "The unique ID of the paste")
+            String id,
+
+            @Schema(description = "Username of the creator of the paste")
+            String createdBy,
+
+            @Schema(description = "Timestamp of when the paste was created")
+            LocalDateTime createdAt,
+
+            @JsonProperty("public")
+            @Schema(description = "Indicates if the paste is public or private")
+            boolean isPublic
+    ) {}
+
+    public record PasteRetrieveResponse(
+            @Schema(description = "The unique ID of the paste")
+            String id,
+
+            @Schema(description = "Username of the creator of the paste")
+            String createdBy,
+
+            @Schema(description = "Timestamp of when the paste was created")
+            LocalDateTime createdAt,
+
+            @JsonProperty("public")
+            @Schema(description = "Indicates if the paste is public or private")
+            boolean isPublic,
+
+            @Schema(description = "The actual content of the paste")
+            String content
+    ) {}
 
     // User-related responses
     public record UserCreatedResponse(UUID id, LocalDateTime createdAt) {}
@@ -25,5 +59,5 @@ public class ResponsesDto {
 
     public record TokenRevokedResponse(boolean revoked) {}
 
-    public record ErrorResponse(String error) {}
+    public record ErrorResponse(@Schema(description = "Message that describes the error") String error) {}
 }

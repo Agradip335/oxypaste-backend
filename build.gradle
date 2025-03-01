@@ -53,7 +53,54 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+//import java.nio.file.Paths
+//
+//def redocRepo = 'https://github.com/Redocly/redoc-cli.git'
+//def redocDir = "${buildDir}/redoc"
+//def redocDistDir = "${redocDir}/dist"
+//def staticDir = "${projectDir}/src/main/resources/static"
+//
+//// Task to clone ReDoc if it’s not already cloned
+//task cloneRedoc(type: Exec) {
+//	doFirst {
+//		println "Cloning ReDoc repository..."
+//	}
+//	commandLine 'git', 'clone', '--depth', '1', redocRepo, redocDir
+//	onlyIf { !file(redocDir).exists() }
+//}
+//
+//// Task to build ReDoc using npm
+//task buildRedoc(type: Exec) {
+//	dependsOn cloneRedoc
+//	workingDir redocDir
+//
+//	doFirst {
+//		println "Building ReDoc..."
+//	}
+//
+//	if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+//		commandLine 'cmd', '/c', 'pnpm install && pnpm run build'
+//	} else {
+//		commandLine 'sh', '-c', 'pnpm install && pnpm run build'
+//	}
+//}
+//
+//// Task to copy built ReDoc files to Spring Boot's static directory
+//task copyRedoc(type: Copy) {
+//	dependsOn buildRedoc
+//	from redocDistDir
+//	into Paths.get(staticDir, "redoc")
+//
+//	doFirst {
+//		println "Copying ReDoc to static directory..."
+//	}
+//}
+//
+//// Ensure ReDoc is built and copied before Spring Boot processes resources
+//processResources.dependsOn copyRedoc
