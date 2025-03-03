@@ -1,18 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+
     <!-- Console appender for logging to the console -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+            <pattern>[%d{HH:mm:ss}] [%class] [%level]: %msg%n</pattern>
         </encoder>
     </appender>
 
-    <logger name="org.ehcache" level="TRACE" additivity="false">
+    <!-- File appender for logging to a file -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/latest.log</file>
+
+        <!-- Rolling policy: Keeps old log files -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory> <!-- Keep logs for the last 7 days -->
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>[%d{HH:mm:ss}] [%class] [%level]: %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Logger for specific packages (example: Ehcache) -->
+    <logger name="org.ehcache" level="INFO" additivity="false">
         <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
     </logger>
 
-    <!-- Root logger -->
+    <!-- Root logger with Minecraft-style formatting -->
     <root level="INFO">
         <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
     </root>
+
 </configuration>
