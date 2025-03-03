@@ -55,7 +55,7 @@ public class PasteController {
     }
 
     // Create a new paste
-    @PostMapping
+    @PostMapping("/")
     @AuthRequired(strict = false)
     @Operation(
             summary = "Create a new paste",
