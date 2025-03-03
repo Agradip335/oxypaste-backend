@@ -143,7 +143,7 @@ public class PasteController {
     public List<ResponsesDto.PasteMetaResponse> getPublicPastes() {
         Map<String, String> documentPaths = appConfig.getDocuments();
 
-        List<ResponsesDto.PasteMetaResponse> list = documentPaths.keySet().stream()
+        List<ResponsesDto.PasteMetaResponse> rootPastes = documentPaths.keySet().stream()
                 .map(s -> {
                     Paste paste = pasteService.getRootDocument(s);
                     return new ResponsesDto.PasteMetaResponse(
@@ -155,13 +155,18 @@ public class PasteController {
                 })
                 .toList();
 
-        pasteService.getPublicPastes().stream()
-                .forEach(paste -> list.add(new ResponsesDto.PasteMetaResponse(
+        List<ResponsesDto.PasteMetaResponse> publicPastes = pasteService.getPublicPastes().stream()
+                .map(paste -> new ResponsesDto.PasteMetaResponse(
                         paste.getId(),
                         paste.getUser() == null ? null : paste.getUser().getId().toString(),
                         paste.getCreatedAt(),
                         true
-                )));
+                ))
+                .toList();
+
+        List<ResponsesDto.PasteMetaResponse> list = new ArrayList<>();
+        list.addAll(rootPastes);
+        list.addAll(publicPastes);
 
         return list;
     }
