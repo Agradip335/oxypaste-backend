@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/paste")
+@RequestMapping("/api/pastes")
 @Tag(name = "Pastes", description = "Endpoints for operating with pastes")
 public class PasteController {
 
