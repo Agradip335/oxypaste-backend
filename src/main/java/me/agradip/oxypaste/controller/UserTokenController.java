@@ -32,7 +32,6 @@ public class UserTokenController {
     @PostMapping("/create")
     @AuthRequired(tokenType = Token.TokenType.SESSION)
     public TokenCreatedResponse createApiToken(
-            Principal principal,
             @RequestParam String name,
             @RequestParam(required = false) String description,
             @RequestParam(required = false) Long duration
