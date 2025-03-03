@@ -8,6 +8,8 @@ import me.agradip.oxypaste.util.IOUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -36,16 +38,16 @@ public class PasteService {
         return pasteRepository.findById(id);
     }
 
-    public List<Paste> getAllPastes() {
-        return pasteRepository.findAll();
+    public Page<Paste> getAllPastes(Pageable pageable) {
+        return pasteRepository.findAll(pageable);
     }
 
     public void deletePaste(String id) {
         pasteRepository.delete(pasteRepository.getReferenceById(id));
     }
 
-    public List<Paste> getPublicPastes() {
-        return pasteRepository.findByIsPublicTrue();
+    public Page<Paste> getPublicPastes(Pageable pageable) {
+        return pasteRepository.findByIsPublicTrue(pageable);
     }
 
     @Cacheable(value = "rootDocumentsCache", key = "#key")

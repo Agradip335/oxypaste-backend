@@ -20,7 +20,12 @@ import me.agradip.oxypaste.security.AuthRequired;
 import me.agradip.oxypaste.service.PasteService;
 import me.agradip.oxypaste.service.UserService;
 import me.agradip.oxypaste.util.RestUtil;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springdoc.core.converters.models.PageableAsQueryParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -127,35 +132,34 @@ public class PasteController {
     }
 
     // Get public pastes
-    // todo: Add pagination
-    @GetMapping("/list")
+    @GetMapping("/list/public")
     @Operation(summary = "Get public pastes", description = """
-        Retrieves a `Paste Meta` array of all public pastes.
+    Retrieves a `Paste Meta` array of all public pastes.
 
-        - This endpoint returns both root documents (if configured) and user-created public pastes.
-        - The value for the 'createdBy' property will be 'root' if the paste is a root document.
-        - Root documents are predefined in the backend by the sysadmin and always public.
-        - User-created pastes are included if they are marked as public.
-        """)
+    - This endpoint returns both root documents (if configured) and user-created public pastes.
+    - The value for the 'createdBy' property will be 'root' if the paste is a root document.
+    - Root documents are predefined in the backend by the sysadmin and always public.
+    - User-created pastes are included if they are marked as public.
+    
+    ### Pagination
+    - Supports standard Spring pagination query parameters:
+      - `page` (integer, default: 0) - The page index (0-based).
+      - `size` (integer) - The number of records per page.
+      - `sort` (string, optional) - Sorting criteria in the format `property,asc|desc`. Can be used multiple times.
+      
+    #### Example Usage:
+    - `GET /list/public?page=0&size=10`
+    - `GET /list/public?page=1&size=5&sort=createdAt,desc`
+    """
+    )
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = ResponsesDto.PasteMetaResponse.class)))),
     })
-    public List<ResponsesDto.PasteMetaResponse> getPublicPastes() {
-        Map<String, String> documentPaths = appConfig.getDocuments();
+    // todo: fix sorting names
+    public List<ResponsesDto.PasteMetaResponse> getPublicPastes(@ParameterObject Pageable pageable) {
+        Page<Paste> publicPastesPage = pasteService.getPublicPastes(pageable);
 
-        List<ResponsesDto.PasteMetaResponse> rootPastes = documentPaths.keySet().stream()
-                .map(s -> {
-                    Paste paste = pasteService.getRootDocument(s);
-                    return new ResponsesDto.PasteMetaResponse(
-                            paste.getId(),
-                            "root",
-                            paste.getCreatedAt(),
-                            true
-                    );
-                })
-                .toList();
-
-        List<ResponsesDto.PasteMetaResponse> publicPastes = pasteService.getPublicPastes().stream()
+        return publicPastesPage.getContent().stream()
                 .map(paste -> new ResponsesDto.PasteMetaResponse(
                         paste.getId(),
                         paste.getUser() == null ? null : paste.getUser().getId().toString(),
@@ -163,13 +167,31 @@ public class PasteController {
                         true
                 ))
                 .toList();
-
-        List<ResponsesDto.PasteMetaResponse> list = new ArrayList<>();
-        list.addAll(rootPastes);
-        list.addAll(publicPastes);
-
-        return list;
     }
+
+
+    // Get root pastes
+    @GetMapping("/list/root")
+    @Operation(summary = "Get root pastes", description = "Returns an array of `Paste` for all the root pastes")
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, array = @ArraySchema(schema = @Schema(implementation = ResponsesDto.PasteRetrieveResponse.class)))
+    )
+    public List<ResponsesDto.PasteRetrieveResponse> getRootPastes() {
+        return appConfig.getDocuments().keySet().stream()
+                .map(s -> {
+                    Paste paste = pasteService.getRootDocument(s);
+                    return new ResponsesDto.PasteRetrieveResponse(
+                            paste.getId(),
+                            "root",
+                            paste.getCreatedAt(),
+                            true,
+                            paste.getContent()
+                    );
+                })
+                .toList();
+    }
+
 
     // Delete paste
     @DeleteMapping("/{id}")
