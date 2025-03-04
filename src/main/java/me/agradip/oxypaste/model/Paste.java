@@ -28,8 +28,8 @@ public class Paste {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(name = "is_public")
-    private boolean isPublic;
+    @Column(name = "visibility", nullable = false)
+    private PasteVisibility visibility;
 
     public Paste() {
         this.id = generateRandomId(PASTE_ID_LEN);
@@ -75,16 +75,12 @@ public class Paste {
         this.user = user;
     }
 
-    public boolean isPublic() {
-        return isPublic;
+    public PasteVisibility getVisibility() {
+        return visibility;
     }
 
-    public void setPublic() {
-        this.isPublic = true;
-    }
-
-    public void setPrivate() {
-        this.isPublic = false;
+    public void setVisibility(PasteVisibility visibility) {
+        this.visibility = visibility;
     }
 
     private String generateRandomId(int len) {
@@ -94,5 +90,9 @@ public class Paste {
             idBuilder.append(ALLOWED_CHARS.charAt(index));
         }
         return idBuilder.toString();
+    }
+
+    public enum PasteVisibility {
+        PUBLIC, PRIVATE
     }
 }

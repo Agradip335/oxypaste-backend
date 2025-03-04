@@ -3,6 +3,7 @@ package me.agradip.oxypaste.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import me.agradip.oxypaste.model.Paste;
 import org.springframework.boot.jackson.JsonComponent;
 
 import java.time.LocalDateTime;
@@ -27,9 +28,8 @@ public class ResponsesDto {
             @Schema(description = "Timestamp of when the paste was created")
             LocalDateTime createdAt,
 
-            @JsonProperty("public")
             @Schema(description = "Indicates if the paste is public or private")
-            boolean isPublic
+            Paste.PasteVisibility visibility
     ) {}
 
     @Schema(name = "Paste")
@@ -43,9 +43,8 @@ public class ResponsesDto {
             @Schema(description = "Timestamp of when the paste was created")
             LocalDateTime createdAt,
 
-            @JsonProperty("public")
-            @Schema(description = "Indicates if the paste is public or private")
-            boolean isPublic,
+            @Schema(description = "Indicates the visibility of the paste")
+            Paste.PasteVisibility visibility,
 
             @Schema(description = "The actual content of the paste")
             String content

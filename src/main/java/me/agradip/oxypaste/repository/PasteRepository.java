@@ -10,5 +10,5 @@ import java.util.List;
 
 @Repository
 public interface PasteRepository extends JpaRepository<Paste, String> {
-    Page<Paste> findByIsPublicTrue(Pageable pageable);
+    Page<Paste> findByVisibility(Paste.PasteVisibility visibility, Pageable pageable);
 }

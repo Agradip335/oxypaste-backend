@@ -47,7 +47,7 @@ public class PasteService {
     }
 
     public Page<Paste> getPublicPastes(Pageable pageable) {
-        return pasteRepository.findByIsPublicTrue(pageable);
+        return pasteRepository.findByVisibility(Paste.PasteVisibility.PUBLIC, pageable);
     }
 
     @Cacheable(value = "rootDocumentsCache", key = "#key")
@@ -62,7 +62,7 @@ public class PasteService {
 
         Paste paste = new Paste(key);
         paste.setContent(content);
-        paste.setPublic();
+        paste.setVisibility(Paste.PasteVisibility.PUBLIC);
         paste.setCreatedAt(creationTime);
 
         return paste;

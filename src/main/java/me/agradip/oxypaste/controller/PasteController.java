@@ -80,7 +80,7 @@ public class PasteController {
         User user = RestUtil.getCurrentUser();
         
         Paste paste = new Paste(request.content(), user);
-        if (request.isPublic()) paste.setPublic();
+        paste.setVisibility(request.visibility());
 
         Paste createdPaste = pasteService.createPaste(paste);
 
@@ -110,7 +110,7 @@ public class PasteController {
                         rootPaste.getId(),
                         "root",
                         rootPaste.getCreatedAt(),
-                        true,
+                        Paste.PasteVisibility.PUBLIC,
                         rootPaste.getContent()
                 );
             }
@@ -122,7 +122,7 @@ public class PasteController {
                             paste.getId(),
                             paste.getUser() == null ? null : paste.getUser().getId().toString(),
                             paste.getCreatedAt(),
-                            paste.isPublic(),
+                            paste.getVisibility(),
                             paste.getContent()
                     );
                 })
@@ -162,7 +162,7 @@ public class PasteController {
                         paste.getId(),
                         paste.getUser() == null ? null : paste.getUser().getId().toString(),
                         paste.getCreatedAt(),
-                        true
+                        paste.getVisibility()
                 ))
                 .toList();
     }
@@ -183,7 +183,7 @@ public class PasteController {
                             paste.getId(),
                             "root",
                             paste.getCreatedAt(),
-                            true,
+                            Paste.PasteVisibility.PUBLIC,
                             paste.getContent()
                     );
                 })
