@@ -106,27 +106,25 @@ public class PasteController {
         if (documentPaths.containsKey(id)) {
             Paste rootPaste = pasteService.getRootDocument(id);
             if (rootPaste != null) {
-                ResponsesDto.PasteRetrieveResponse response = new ResponsesDto.PasteRetrieveResponse(
+                return new ResponsesDto.PasteRetrieveResponse(
                         rootPaste.getId(),
                         "root",
                         rootPaste.getCreatedAt(),
                         true,
                         rootPaste.getContent()
                 );
-                return response;
             }
         }
 
         return pasteService.getPaste(id)
                 .map(paste -> {
-                    ResponsesDto.PasteRetrieveResponse response = new ResponsesDto.PasteRetrieveResponse(
+                    return new ResponsesDto.PasteRetrieveResponse(
                             paste.getId(),
                             paste.getUser() == null ? null : paste.getUser().getId().toString(),
                             paste.getCreatedAt(),
                             paste.isPublic(),
                             paste.getContent()
                     );
-                    return response;
                 })
                 .orElseThrow(() -> new PasteExceptions.PasteNotFound(id));
     }
