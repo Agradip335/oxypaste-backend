@@ -74,13 +74,13 @@ public class PasteController {
             @ApiResponse(responseCode = "400",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ResponsesDto.ErrorResponse.class)))
     })
-    public ResponseEntity<?> createPaste(Principal principal, @RequestBody RequestsDto.PasteCreateRequest request) {
+    public ResponseEntity<?> createPaste(@RequestBody RequestsDto.PasteCreateRequest request) {
         if (request.content() == null || request.content().trim().isEmpty()) throw new EmptyContentException();
 
         User user = RestUtil.getCurrentUser();
         
         Paste paste = new Paste(request.content(), user);
-        paste.setVisibility(request.visibility());
+        if(request.isPublic()) paste.setVisibility(Paste.PasteVisibility.PUBLIC);
 
         Paste createdPaste = pasteService.createPaste(paste);
 
@@ -110,7 +110,7 @@ public class PasteController {
                         rootPaste.getId(),
                         "root",
                         rootPaste.getCreatedAt(),
-                        Paste.PasteVisibility.PUBLIC,
+                        true,
                         rootPaste.getContent()
                 );
             }
@@ -122,7 +122,7 @@ public class PasteController {
                             paste.getId(),
                             paste.getUser() == null ? null : paste.getUser().getId().toString(),
                             paste.getCreatedAt(),
-                            paste.getVisibility(),
+                            paste.getVisibility().equals(Paste.PasteVisibility.PUBLIC),
                             paste.getContent()
                     );
                 })
@@ -162,7 +162,7 @@ public class PasteController {
                         paste.getId(),
                         paste.getUser() == null ? null : paste.getUser().getId().toString(),
                         paste.getCreatedAt(),
-                        paste.getVisibility()
+                        true
                 ))
                 .toList();
     }
@@ -183,7 +183,7 @@ public class PasteController {
                             paste.getId(),
                             "root",
                             paste.getCreatedAt(),
-                            Paste.PasteVisibility.PUBLIC,
+                            true,
                             paste.getContent()
                     );
                 })

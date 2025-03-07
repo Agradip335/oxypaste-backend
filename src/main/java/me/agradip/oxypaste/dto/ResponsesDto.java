@@ -28,8 +28,9 @@ public class ResponsesDto {
             @Schema(description = "Timestamp of when the paste was created")
             LocalDateTime createdAt,
 
+            @JsonProperty("public")
             @Schema(description = "Indicates if the paste is public or private")
-            Paste.PasteVisibility visibility
+            boolean isPublic
     ) {}
 
     @Schema(name = "Paste")
@@ -43,8 +44,9 @@ public class ResponsesDto {
             @Schema(description = "Timestamp of when the paste was created")
             LocalDateTime createdAt,
 
+            @JsonProperty("public")
             @Schema(description = "Indicates the visibility of the paste")
-            Paste.PasteVisibility visibility,
+            boolean isPublic,
 
             @Schema(description = "The actual content of the paste")
             String content

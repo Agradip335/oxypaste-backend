@@ -1,10 +1,13 @@
 package me.agradip.oxypaste.advice;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import me.agradip.oxypaste.dto.ResponsesDto;
 import me.agradip.oxypaste.exception.ApiException;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConversionException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,8 +21,8 @@ public class GlobalExceptionHandlerAdvice {
         return ResponseEntity.status(ex.getStatus()).body(new ResponsesDto.ErrorResponse(ex.getMessage()));
     }
 
-    @ExceptionHandler(PropertyReferenceException.class)
-    public ResponseEntity<ResponsesDto.ErrorResponse> handleSortPropertyException(PropertyReferenceException ex) {
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ResponsesDto.ErrorResponse> handleBadRequests(HttpMessageNotReadableException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponsesDto.ErrorResponse(ex.getMessage()));
     }
 

@@ -34,16 +34,19 @@ public class Paste {
     public Paste() {
         this.id = generateRandomId(PASTE_ID_LEN);
         this.createdAt = LocalDateTime.now();
+        this.visibility = PasteVisibility.PRIVATE;
     }
 
     public Paste(String id) {
+        this();
+
         this.id = id;
     }
 
     public Paste(String content, User user) {
-        this.id = generateRandomId(PASTE_ID_LEN);
+        this();
+
         this.content = content;
-        this.createdAt = LocalDateTime.now();
         this.user = user;
     }
 

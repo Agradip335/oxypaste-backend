@@ -1,5 +1,10 @@
 package me.agradip.oxypaste.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import me.agradip.oxypaste.Utils;
 import me.agradip.oxypaste.dto.ResponsesDto;
@@ -9,7 +14,6 @@ import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.service.TokenService;
 import me.agradip.oxypaste.service.UserService;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
@@ -18,6 +22,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/user")
+@Tag(name = "User Management", description = "Endpoints for user account creation and authentication")
 public class UserController {
 
     private final UserService userService;
@@ -28,6 +33,16 @@ public class UserController {
         this.tokenService = tokenService;
     }
 
+    @Operation(
+            summary = "Create a new user account",
+            description = "Registers a new user using username, email, and password.",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "User created successfully",
+                            content = @Content(schema = @Schema(implementation = ResponsesDto.UserCreatedResponse.class))),
+                    @ApiResponse(responseCode = "400", description = "Missing required fields"),
+                    @ApiResponse(responseCode = "409", description = "An account with that username or email already exists")
+            }
+    )
     @PostMapping(value = "/create", consumes = "multipart/form-data")
     public ResponsesDto.UserCreatedResponse createAccount(MultipartHttpServletRequest request, HttpServletResponse response) {
         Map<String, String[]> params = request.getParameterMap();
@@ -49,6 +64,17 @@ public class UserController {
         return new ResponsesDto.UserCreatedResponse(user.getId(), user.getCreatedAt());
     }
 
+    @Operation(
+            summary = "Authenticate user and generate session token",
+            description = "Logs in a user using username and password, returning an authentication token.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Login successful",
+                            content = @Content(schema = @Schema(implementation = ResponsesDto.LoginResponse.class))),
+                    @ApiResponse(responseCode = "400", description = "Missing required fields"),
+                    @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+                    @ApiResponse(responseCode = "404", description = "User not found")
+            }
+    )
     @PostMapping(value = "/login", consumes = "multipart/form-data")
     public ResponsesDto.LoginResponse login(@RequestHeader("User-Agent") String useragent, MultipartHttpServletRequest request) {
         Map<String, String[]> params = request.getParameterMap();

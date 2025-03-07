@@ -53,9 +53,7 @@ public class PasteService {
     @Cacheable(value = "rootDocumentsCache", key = "#key")
     public Paste getRootDocument(String key) {
         String filePath = appConfig.getDocuments().get(key);
-        if (filePath == null) {
-            throw new IllegalArgumentException("Root document with key " + key + " not found.");
-        }
+        if (filePath == null) throw new IllegalArgumentException("Root document with key " + key + " not found.");
 
         String content = IOUtil.readFileSync(new File(filePath));
         LocalDateTime creationTime = IOUtil.getFileCreationTime(filePath);
