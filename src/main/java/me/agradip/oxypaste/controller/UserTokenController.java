@@ -3,6 +3,7 @@ package me.agradip.oxypaste.controller;
 import me.agradip.oxypaste.dto.ResponsesDto.TokenCreatedResponse;
 import me.agradip.oxypaste.dto.ResponsesDto.TokenViewResponse;
 
+import me.agradip.oxypaste.exception.ApiException;
 import me.agradip.oxypaste.model.Token;
 import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.security.AuthRequired;
@@ -37,6 +38,16 @@ public class UserTokenController {
             @RequestParam(required = false) Long duration
     ) {
         User user = RestUtil.getCurrentUser();
+
+        assert user != null;
+        int currentApiTokens = tokenService.countActiveTokensForUser(user.getId(), Token.TokenType.API);
+        if (currentApiTokens >= tokenService.getMaxApiTokens()) {
+            throw new ApiException(429, "API token limit reached. Delete an existing token to create a new one.");
+        }
+
+        if (tokenService.tokenNameExistsForUser(user, name)) {
+            throw new ApiException(409, "Token name already exists. Please choose a different name.");
+        }
 
         Token token = tokenService.createToken(user, Token.TokenType.API, name, description, duration);
         return new TokenCreatedResponse(token.getToken());

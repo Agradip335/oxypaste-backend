@@ -14,15 +14,15 @@ public class RestUtil {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            return null; // Or throw an exception if you prefer
+            return null;
         }
 
         Object principal = authentication.getPrincipal();
 
         if (principal instanceof User user) {
-            return user;  // ✅ Safe cast
+            return user;
         }
 
-        return null; // Or throw an exception if user isn't found
+        return null;
     }
 }

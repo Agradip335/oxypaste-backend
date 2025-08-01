@@ -1,9 +1,11 @@
 package me.agradip.oxypaste.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Objects;
 
 @Component
 @ConfigurationProperties(prefix = "application")
@@ -27,6 +29,7 @@ public class AppConfig {
     public void setDocuments(Map<String, String> documents) {
         this.documents = documents;
     }
+
 
     public static class Document {
         private String path;

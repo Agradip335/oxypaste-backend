@@ -62,7 +62,7 @@ public class PasteController {
             description = """
         Creates a new paste.
 
-        - **Authorization is optional.**  
+        - **Authorization is optional.**
         - If an **Authorization** token is provided, the paste will be associated with the authenticated user.  
         - If no token is provided, the paste is created anonymously.
         """,

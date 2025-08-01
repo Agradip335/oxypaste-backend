@@ -4,18 +4,35 @@ import me.agradip.oxypaste.model.Token;
 import me.agradip.oxypaste.model.Token.TokenType;
 import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.repository.TokenRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class TokenService {
 
     private final TokenRepository tokenRepository;
+
+    @Value("${application.security.max-sessions}")
+    private int maxActiveSessions;
+
+    @Value("${application.security.max-api-tokens}")
+    private int maxApiTokens;
+
+    public int getMaxActiveSessions() {
+        return maxActiveSessions;
+    }
+
+    public int getMaxApiTokens() {
+        return maxApiTokens;
+    }
 
     public TokenService(TokenRepository tokenRepository) {
         this.tokenRepository = tokenRepository;
@@ -67,5 +84,14 @@ public class TokenService {
     public Optional<User> getUserFromToken(String tokenStr) {
         Optional<Token> tokenOpt = tokenRepository.findByToken(tokenStr);
         return tokenOpt.map(Token::getUser);
+    }
+
+    public int countActiveTokensForUser(UUID userId, TokenType type) {
+        LocalDateTime now = LocalDateTime.now();
+        return tokenRepository.countByUserIdAndTypeAndExpiresAtAfter(userId, type, now);
+    }
+
+    public boolean tokenNameExistsForUser(User user, String name) {
+        return tokenRepository.existsByUserAndName(user, name);
     }
 }

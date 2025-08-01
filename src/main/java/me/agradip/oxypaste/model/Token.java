@@ -23,11 +23,11 @@ public class Token {
     @Column(nullable = false, unique = true, length = 255)
     private String token;
 
-    @Enumerated(EnumType.ORDINAL) // Stores as 0 or 1 in DB
+//    @Enumerated(EnumType.ORDINAL) // Stores as 0 or 1 in DB
     @Column(nullable = false)
     private TokenType type;
 
-    @Column(unique = true, length = 64)
+    @Column(length = 64)
     private String name; // Only for API tokens
 
     @Column(length = 256)

@@ -4,6 +4,8 @@ import me.agradip.oxypaste.model.Token;
 import me.agradip.oxypaste.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,4 +15,6 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     List<Token> findByUser(User user);
     void deleteByUser(User user);
     void deleteByToken(String token);
+    int countByUserIdAndTypeAndExpiresAtAfter(UUID userId, Token.TokenType type, LocalDateTime now);
+    boolean existsByUserAndName(User user, String name);
 }

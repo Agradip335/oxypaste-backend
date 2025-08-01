@@ -14,6 +14,7 @@ import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.service.TokenService;
 import me.agradip.oxypaste.service.UserService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
@@ -88,11 +89,23 @@ public class UserController {
 
         Optional<User> userOpt = userService.getUserByUsername(username);
 
-        if(!userOpt.isPresent()) throw new ApiException(404, "User not found");
+        if (!userOpt.isPresent()) throw new ApiException(404, "User not found");
         if (!userService.authenticateUser(username, password)) throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
 
         User user = userOpt.get();
-        Token sessionToken = tokenService.createToken(user, Token.TokenType.SESSION, Utils.generateRandom(4), String.format("Created with User-Agent %s - IP Address - %s", useragent, request.getRemoteAddr()), (long) (30 * 60)); // change expiry later
+
+        int activeSessionCount = tokenService.countActiveTokensForUser(user.getId(), Token.TokenType.SESSION);
+        if (activeSessionCount >= tokenService.getMaxActiveSessions()) {
+            throw new ApiException(429, "Session limit reached.");
+        }
+
+        Token sessionToken = tokenService.createToken(
+                user,
+                Token.TokenType.SESSION,
+                Utils.generateRandom(4),
+                String.format("Created with User-Agent %s - IP Address - %s", useragent, request.getRemoteAddr()),
+                (long) (30 * 60) // todo: change the expiry time (30 minutes)
+        );
 
         return new ResponsesDto.LoginResponse(sessionToken.getToken(), sessionToken.getExpiresAt());
     }
