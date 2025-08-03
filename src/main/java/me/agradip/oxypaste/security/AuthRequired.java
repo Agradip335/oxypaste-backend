@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 public @interface AuthRequired {
     boolean strict() default true;
     Token.TokenType tokenType() default Token.TokenType.API;
+    boolean bypassCheckIfSessionTokenProvided() default false;
 }

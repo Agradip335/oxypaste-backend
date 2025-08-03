@@ -34,11 +34,10 @@ public class AuthInterceptor implements HandlerInterceptor {
         String authHeader = request.getHeader("Authorization");
         boolean hasAuthHeader = authHeader != null && authHeader.startsWith("Bearer ");
 
-        // If Authorization header is present, validate it
         if (hasAuthHeader) {
-            String tokenValue = authHeader.substring(7);
+            String tokenValue = authHeader.substring(7).trim();
 
-            if(tokenValue.isEmpty()) {
+            if (tokenValue.isEmpty()) {
                 throw new ApiException(HttpStatus.UNAUTHORIZED, "Unauthorized");
             }
 
@@ -54,16 +53,26 @@ public class AuthInterceptor implements HandlerInterceptor {
                 throw new ApiException(HttpStatus.UNAUTHORIZED, "Token has expired");
             }
 
-            if (annotation != null && userToken.getType() != annotation.tokenType()) {
-                throw new ApiException(HttpStatus.FORBIDDEN, "Invalid token type for this action");
+            // Type enforcement logic
+            if (annotation != null) {
+                Token.TokenType expectedType = annotation.tokenType();
+                boolean bypassAllowed = annotation.bypassCheckIfSessionTokenProvided();
+
+                if (userToken.getType() != expectedType) {
+                    if (bypassAllowed && userToken.getType() == Token.TokenType.SESSION) {
+                        // Allow session token as fallback
+                    } else {
+                        throw new ApiException(HttpStatus.FORBIDDEN, "Invalid token type for this action");
+                    }
+                }
             }
 
-            // Set user authentication
+            // Set authenticated user
             setUserAuthentication(userToken.getUser());
             return true;
         }
 
-        // If no Authorization header and endpoint requires strict authentication
+        // Authorization header missing and authentication is required
         if (annotation != null && annotation.strict()) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Authentication required");
         }

@@ -5,10 +5,9 @@ import me.agradip.oxypaste.exception.ApiException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class RecaptchaService {
@@ -21,18 +20,20 @@ public class RecaptchaService {
     public void verify(String recaptchaToken) {
         RestTemplate restTemplate = new RestTemplate();
 
-        Map<String, String> params = new HashMap<>();
-        params.put("secret", secretKey);
-        params.put("response", recaptchaToken);
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("secret", secretKey);
+        params.add("response", recaptchaToken);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(params, headers);
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+
         ResponseEntity<ResponsesDto.RecaptchaResponseDto> response =
                 restTemplate.postForEntity(VERIFY_URL, request, ResponsesDto.RecaptchaResponseDto.class);
 
         ResponsesDto.RecaptchaResponseDto body = response.getBody();
+
         if (body == null || !body.success()) {
             throw new ApiException(400, "Failed reCAPTCHA verification");
         }

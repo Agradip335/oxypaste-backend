@@ -12,9 +12,11 @@ import me.agradip.oxypaste.exception.ApiException;
 import me.agradip.oxypaste.model.Token;
 import me.agradip.oxypaste.model.User;
 import me.agradip.oxypaste.security.AuthRequired;
+import me.agradip.oxypaste.service.RecaptchaService;
 import me.agradip.oxypaste.service.TokenService;
 import me.agradip.oxypaste.service.UserService;
 import me.agradip.oxypaste.util.RestUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -37,18 +39,22 @@ public class UserController {
     @Value("${application.mail-registration}")
     private boolean mailRegistrationEnabled;
 
-    public UserController(UserService userService, TokenService tokenService) {
+    private RecaptchaService recaptchaService;
+
+    public UserController(UserService userService, TokenService tokenService, RecaptchaService recaptchaService) {
         this.userService = userService;
         this.tokenService = tokenService;
+        this.recaptchaService = recaptchaService;
     }
 
     @Operation(
             summary = "Create a new user account",
             description = "Registers a new user using username, email, and password.",
             responses = {
-                    @ApiResponse(responseCode = "201", description = "User created successfully",
+                    @ApiResponse(responseCode = "202", description = "User creation accepted and email sent (if configured)",
                             content = @Content(schema = @Schema(implementation = ResponsesDto.UserCreatedResponse.class))),
                     @ApiResponse(responseCode = "400", description = "Missing required fields"),
+                    @ApiResponse(responseCode = "400", description = "reCAPTCHA verification failed"),
                     @ApiResponse(responseCode = "409", description = "An account with that username or email already exists")
             }
     )
@@ -59,6 +65,10 @@ public class UserController {
         String username = getParam(params, "username");
         String email = getParam(params, "email");
         String password = getParam(params, "password");
+        String recaptchaToken = getParam(params, "recaptcha_token");
+
+        recaptchaService.verify(recaptchaToken);
+
         String creationIp = request.getRemoteAddr();
 
         if (username == null || email == null || password == null) {
@@ -102,6 +112,9 @@ public class UserController {
 
         String username = getParam(params, "username");
         String password = getParam(params, "password");
+        String recaptchaToken = getParam(params, "recaptcha_token");
+
+        recaptchaService.verify(recaptchaToken);
 
         if (username == null || password == null) {
             throw new ApiException(400, "Missing required fields");
