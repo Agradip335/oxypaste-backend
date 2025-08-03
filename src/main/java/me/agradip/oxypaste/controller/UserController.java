@@ -17,11 +17,9 @@ import me.agradip.oxypaste.service.UserService;
 import me.agradip.oxypaste.util.RestUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
@@ -35,6 +33,9 @@ public class UserController {
 
     @Value("${security.session-expiry:1440}")
     private long sessionExpiry;
+
+    @Value("${application.mail-registration}")
+    private boolean mailRegistrationEnabled;
 
     public UserController(UserService userService, TokenService tokenService) {
         this.userService = userService;
@@ -52,7 +53,7 @@ public class UserController {
             }
     )
     @PostMapping(value = "/create", consumes = "multipart/form-data")
-    public ResponsesDto.UserCreateLinkSentResponse createAccount(MultipartHttpServletRequest request, HttpServletResponse response) {
+    public ResponsesDto.UserCreateAcceptedResponse createAccount(MultipartHttpServletRequest request, HttpServletResponse response) {
         Map<String, String[]> params = request.getParameterMap();
 
         String username = getParam(params, "username");
@@ -71,9 +72,9 @@ public class UserController {
             throw new ApiException((HttpStatus.FORBIDDEN), "Illegal username: " + username);
         }
 
-        User user = userService.registerUser(username, email, password, creationIp);
+        String token = userService.registerUser(username, email, password, creationIp);
         response.setStatus(HttpStatus.ACCEPTED.value());
-        return new ResponsesDto.UserCreateLinkSentResponse(user.getId(), user.getEmail());
+        return new ResponsesDto.UserCreateAcceptedResponse(mailRegistrationEnabled ? null : token);
     }
 
     @GetMapping("/verify")

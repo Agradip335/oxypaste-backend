@@ -26,21 +26,28 @@ public class UserService {
     private final EmailService emailService;
     private final VerificationTokenService verificationTokenService;
 
+    @Value("${application.mail-registration}")
+    private boolean mailRegistrationEnabled;
+
     public UserService(UserRepository userRepository, EmailService emailService, VerificationTokenService verificationTokenService) {
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.verificationTokenService = verificationTokenService;
     }
 
-    public User registerUser(String username, String email, String password, String creationIp) {
+    public String registerUser(String username, String email, String password, String creationIp) {
         String salt = BCrypt.gensalt();
         String hashedPassword = BCrypt.hashpw(password, salt);
 
         User user = new User(username, email, hashedPassword, salt, creationIp);
+        Map<String, Object> payload = generatePayloadFromObject(user);
+        String token = verificationTokenService.signPayload(payload);
 
-        emailService.sendVerificationEmail(user);
+        if (mailRegistrationEnabled) {
+            emailService.sendVerificationEmail(user, Instant.parse((String) payload.get("expInstant")), token);
+        }
 
-        return user;
+        return token;
     }
 
     public static Map<String, Object> generatePayloadFromObject(User user) {

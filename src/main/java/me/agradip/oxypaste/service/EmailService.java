@@ -28,27 +28,17 @@ public class EmailService {
     @Value("${spring.mail.from}")
     private String emailFrom;
 
-    private final VerificationTokenService verificationTokenService;
-
-    public EmailService(VerificationTokenService verificationTokenService) {
-        this.verificationTokenService = verificationTokenService;
-    }
-
-    public void sendVerificationEmail(User user) {
+    public void sendVerificationEmail(User user, Instant expiryInstant, String token) {
         Map<String, Object> payload = UserService.generatePayloadFromObject(user);
-        String token = verificationTokenService.signPayload(payload);
 
         String subject = "Verify your email";
         String verificationLink = baseUrl + "/account/verify?token=" + token;
 
         // Format the expiry timestamp
         String expiryStr = "";
-        if (payload.containsKey("expInstant")) {
-            Instant expiryInstant = Instant.parse((String) payload.get("expInstant"));
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h:mm a")
-                    .withZone(ZoneId.of("UTC"));
-            expiryStr = formatter.format(expiryInstant) + " UTC";
-        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h:mm a")
+                .withZone(ZoneId.of("UTC"));
+        expiryStr = formatter.format(expiryInstant) + " UTC";
 
         String content = """
         <html>

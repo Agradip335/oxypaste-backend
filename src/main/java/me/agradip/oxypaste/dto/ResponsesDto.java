@@ -1,10 +1,7 @@
 package me.agradip.oxypaste.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import me.agradip.oxypaste.model.Paste;
-import org.springframework.boot.jackson.JsonComponent;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -61,7 +58,7 @@ public class ResponsesDto {
     ) {}
 
     // User-related responses
-    public record UserCreateLinkSentResponse(UUID id, String email) {}
+    public record UserCreateAcceptedResponse(String token) {}
     public record UserCreatedResponse(UUID id, Instant createdAt) {}
     public record LoginResponse(String sessionToken, Instant expiresAt) {}
     public record LoggedUserInfoResponse(UUID id, String username, String email, Instant createdAt) {}
