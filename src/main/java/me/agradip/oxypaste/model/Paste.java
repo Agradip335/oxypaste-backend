@@ -18,6 +18,9 @@ public class Paste {
     @Column(length = PASTE_ID_LEN, unique = true, nullable = false, updatable = false)
     private String id;
 
+    @Column(columnDefinition = "TEXT")
+    private String title;
+
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
@@ -52,6 +55,14 @@ public class Paste {
 
     public String getId() {
         return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getContent() {

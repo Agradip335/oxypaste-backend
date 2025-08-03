@@ -11,8 +11,10 @@ import me.agradip.oxypaste.dto.ResponsesDto;
 import me.agradip.oxypaste.exception.ApiException;
 import me.agradip.oxypaste.model.Token;
 import me.agradip.oxypaste.model.User;
+import me.agradip.oxypaste.security.AuthRequired;
 import me.agradip.oxypaste.service.TokenService;
 import me.agradip.oxypaste.service.UserService;
+import me.agradip.oxypaste.util.RestUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -58,6 +60,10 @@ public class UserController {
         }
         if (userService.getUserByUsername(username).isPresent() || userService.getUserByEmail(email).isPresent()) {
             throw new ApiException(HttpStatus.CONFLICT, "An account with that username or email already exists");
+        }
+
+        if (username.equalsIgnoreCase("root") || username.equalsIgnoreCase("anonymous")) {
+            throw new ApiException((HttpStatus.FORBIDDEN), "Illegal username: " + username);
         }
 
         User user = userService.registerUser(username, email, password, creationIp);
@@ -109,6 +115,30 @@ public class UserController {
 
         return new ResponsesDto.LoginResponse(sessionToken.getToken(), sessionToken.getExpiresAt());
     }
+
+    @Operation(
+            summary = "Get current authenticated user info",
+            description = "Returns the currently logged-in user's information using the session token.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "User data retrieved",
+                            content = @Content(schema = @Schema(implementation = ResponsesDto.LoggedUserInfoResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing token")
+            }
+    )
+    @GetMapping("/@me")
+    @AuthRequired(tokenType = Token.TokenType.SESSION)
+    public ResponsesDto.LoggedUserInfoResponse getCurrentUser() {
+        User user = RestUtil.getCurrentUser();
+
+        assert user != null;
+        return new ResponsesDto.LoggedUserInfoResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getCreatedAt()
+        );
+    }
+
 
     private String getParam(Map<String, String[]> params, String key) {
         return params.containsKey(key) ? params.get(key)[0] : null;

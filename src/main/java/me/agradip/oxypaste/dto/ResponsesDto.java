@@ -22,6 +22,9 @@ public class ResponsesDto {
             @Schema(description = "The unique ID of the paste")
             String id,
 
+            @Schema(description = "The title of the paste", nullable = true)
+            String title,
+
             @Schema(description = "UUID of the user who created the paste. 'root' is used instead if the paste is a root document.")
             String createdBy,
 
@@ -37,6 +40,9 @@ public class ResponsesDto {
     public record PasteRetrieveResponse(
             @Schema(description = "The unique ID of the paste")
             String id,
+
+            @Schema(description = "The title of the paste")
+            String title,
 
             @Schema(description = "Username of the creator of the paste")
             String createdBy,
@@ -55,6 +61,7 @@ public class ResponsesDto {
     // User-related responses
     public record UserCreatedResponse(UUID id, LocalDateTime createdAt) {}
     public record LoginResponse(String sessionToken, LocalDateTime expiresAt) {}
+    public record LoggedUserInfoResponse(UUID id, String username, String email, LocalDateTime createdAt) {}
 
     // Token-related responses
     public record TokenCreatedResponse(String token) {}
