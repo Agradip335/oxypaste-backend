@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import me.agradip.oxypaste.model.Paste;
 import org.springframework.boot.jackson.JsonComponent;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -61,14 +62,14 @@ public class ResponsesDto {
 
     // User-related responses
     public record UserCreateLinkSentResponse(UUID id, String email) {}
-    public record UserCreatedResponse(UUID id, LocalDateTime createdAt) {}
-    public record LoginResponse(String sessionToken, LocalDateTime expiresAt) {}
-    public record LoggedUserInfoResponse(UUID id, String username, String email, LocalDateTime createdAt) {}
+    public record UserCreatedResponse(UUID id, Instant createdAt) {}
+    public record LoginResponse(String sessionToken, Instant expiresAt) {}
+    public record LoggedUserInfoResponse(UUID id, String username, String email, Instant createdAt) {}
 
     // Token-related responses
     public record TokenCreatedResponse(String token) {}
 
-    public record TokenViewResponse(String name, LocalDateTime createdAt, LocalDateTime expiresAt) {}
+    public record TokenViewResponse(String name, Instant createdAt, Instant expiresAt) {}
 
     public record TokenValidationResponse(boolean valid) {}
 

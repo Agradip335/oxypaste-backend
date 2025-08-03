@@ -2,6 +2,7 @@ package me.agradip.oxypaste.model;
 
 import jakarta.persistence.*;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.UUID;
@@ -34,26 +35,26 @@ public class Token {
     private String description;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column
-    private LocalDateTime expiresAt; // Nullable for non-expiring tokens
+    private Instant expiresAt; // Nullable for non-expiring tokens
 
     public Token() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
     }
 
-    public Token(User user, TokenType type, String name, String description, LocalDateTime expiresAt) {
+    public Token(User user, TokenType type, String name, String description, Instant expiresAt) {
         this.user = user;
         this.type = type;
         this.name = name;
         this.description = description;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
         this.expiresAt = expiresAt;
         this.token = generateToken(type, createdAt);
     }
 
-    private static String generateToken(TokenType type, LocalDateTime createdAt) {
+    private static String generateToken(TokenType type, Instant createdAt) {
         long timestamp = createdAt.atZone(java.time.ZoneOffset.UTC).toInstant().toEpochMilli();
         byte[] randomBytes = new byte[16]; // 16 random bytes
         RANDOM.nextBytes(randomBytes);
@@ -85,16 +86,16 @@ public class Token {
         return name;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public LocalDateTime getExpiresAt() {
+    public Instant getExpiresAt() {
         return expiresAt;
     }
 
     public boolean isExpired() {
-        return expiresAt != null && LocalDateTime.now().isAfter(expiresAt);
+        return expiresAt != null && Instant.now().isAfter(expiresAt);
     }
 
 

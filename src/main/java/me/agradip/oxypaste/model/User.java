@@ -30,11 +30,11 @@ public class User {
     private String creationIp;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     public User() {
         this.id = UUID.randomUUID();
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
     }
 
     public User(String username, String email, String password, String salt, String creationIp) {
@@ -44,7 +44,7 @@ public class User {
         this.password = password;
         this.salt = salt;
         this.creationIp = creationIp;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
     }
 
     public UUID getId() {
@@ -71,7 +71,7 @@ public class User {
         return creationIp;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 }

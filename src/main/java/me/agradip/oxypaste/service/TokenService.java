@@ -39,7 +39,7 @@ public class TokenService {
     }
 
     public Token createToken(User user, TokenType type, String name, String description, Long duration) {
-        LocalDateTime expiresAt = (duration != null) ? LocalDateTime.now().plusSeconds(duration) : null;
+        Instant expiresAt = (duration != null) ? Instant.now().plusSeconds(duration) : null;
         Token token = new Token(user, type, name, description, expiresAt);
         return tokenRepository.save(token);
     }
@@ -54,7 +54,7 @@ public class TokenService {
 
     public boolean isTokenValid(String tokenStr) {
         Optional<Token> tokenOpt = tokenRepository.findByToken(tokenStr);
-        return tokenOpt.isPresent() && (tokenOpt.get().getExpiresAt() == null || tokenOpt.get().getExpiresAt().isAfter(LocalDateTime.now()));
+        return tokenOpt.isPresent() && (tokenOpt.get().getExpiresAt() == null || tokenOpt.get().getExpiresAt().isAfter(Instant.now()));
     }
 
     @Transactional
@@ -75,7 +75,7 @@ public class TokenService {
     @Transactional
     public void deleteExpiredTokens() {
         List<Token> expiredTokens = tokenRepository.findAll().stream()
-                .filter(token -> token.getExpiresAt() != null && token.getExpiresAt().isBefore(LocalDateTime.now()))
+                .filter(token -> token.getExpiresAt() != null && token.getExpiresAt().isBefore(Instant.now()))
                 .toList();
 
         tokenRepository.deleteAll(expiredTokens);
