@@ -15,6 +15,7 @@ import me.agradip.oxypaste.security.AuthRequired;
 import me.agradip.oxypaste.service.TokenService;
 import me.agradip.oxypaste.service.UserService;
 import me.agradip.oxypaste.util.RestUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +32,9 @@ public class UserController {
 
     private final UserService userService;
     private final TokenService tokenService;
+
+    @Value("${security.session-expiry:1440}")
+    private long sessionExpiry;
 
     public UserController(UserService userService, TokenService tokenService) {
         this.userService = userService;
@@ -119,7 +123,7 @@ public class UserController {
                 Token.TokenType.SESSION,
                 Utils.generateRandom(4),
                 String.format("Created with User-Agent %s - IP Address - %s", useragent, request.getRemoteAddr()),
-                (long) (30 * 60) // todo: change the expiry time (30 minutes)
+                (long) sessionExpiry
         );
 
         return new ResponsesDto.LoginResponse(sessionToken.getToken(), sessionToken.getExpiresAt());
