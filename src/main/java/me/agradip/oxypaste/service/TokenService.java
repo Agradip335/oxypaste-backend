@@ -20,10 +20,10 @@ public class TokenService {
 
     private final TokenRepository tokenRepository;
 
-    @Value("${application.security.max-sessions}")
+    @Value("${security.max-sessions}")
     private int maxActiveSessions;
 
-    @Value("${application.security.max-api-tokens}")
+    @Value("${security.max-api-tokens}")
     private int maxApiTokens;
 
     public int getMaxActiveSessions() {

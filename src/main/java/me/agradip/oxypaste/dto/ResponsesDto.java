@@ -7,6 +7,7 @@ import me.agradip.oxypaste.model.Paste;
 import org.springframework.boot.jackson.JsonComponent;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public class ResponsesDto {
@@ -59,6 +60,7 @@ public class ResponsesDto {
     ) {}
 
     // User-related responses
+    public record UserCreateLinkSentResponse(UUID id, String email) {}
     public record UserCreatedResponse(UUID id, LocalDateTime createdAt) {}
     public record LoginResponse(String sessionToken, LocalDateTime expiresAt) {}
     public record LoggedUserInfoResponse(UUID id, String username, String email, LocalDateTime createdAt) {}
@@ -73,4 +75,15 @@ public class ResponsesDto {
     public record TokenRevokedResponse(boolean revoked) {}
 
     public record ErrorResponse(@Schema(description = "Message that describes the error") String error) {}
+
+    public record RecaptchaResponseDto(
+        boolean success,
+
+        @JsonProperty("error-codes")
+        List<String> errorCodes,
+
+        String hostname,
+
+        @JsonProperty("challenge_ts")
+        String challengeTs) {}
 }

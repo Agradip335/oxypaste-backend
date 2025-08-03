@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
@@ -47,7 +48,7 @@ public class UserController {
             }
     )
     @PostMapping(value = "/create", consumes = "multipart/form-data")
-    public ResponsesDto.UserCreatedResponse createAccount(MultipartHttpServletRequest request, HttpServletResponse response) {
+    public ResponsesDto.UserCreateLinkSentResponse createAccount(MultipartHttpServletRequest request, HttpServletResponse response) {
         Map<String, String[]> params = request.getParameterMap();
 
         String username = getParam(params, "username");
@@ -67,9 +68,17 @@ public class UserController {
         }
 
         User user = userService.registerUser(username, email, password, creationIp);
-        response.setStatus(201);
+        response.setStatus(HttpStatus.ACCEPTED.value());
+        return new ResponsesDto.UserCreateLinkSentResponse(user.getId(), user.getEmail());
+    }
+
+    @GetMapping("/verify")
+    public ResponsesDto.UserCreatedResponse verifyEmail(@RequestParam("token") String token) {
+        User user = userService.verifyAndRegisterFromToken(token);
+
         return new ResponsesDto.UserCreatedResponse(user.getId(), user.getCreatedAt());
     }
+
 
     @Operation(
             summary = "Authenticate user and generate session token",

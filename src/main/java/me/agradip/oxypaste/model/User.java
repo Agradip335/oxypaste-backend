@@ -1,6 +1,8 @@
 package me.agradip.oxypaste.model;
 
 import jakarta.persistence.*;
+
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
