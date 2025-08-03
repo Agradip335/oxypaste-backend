@@ -123,7 +123,7 @@ public class UserController {
                 Token.TokenType.SESSION,
                 Utils.generateRandom(4),
                 String.format("Created with User-Agent %s - IP Address - %s", useragent, request.getRemoteAddr()),
-                (long) sessionExpiry
+                sessionExpiry
         );
 
         return new ResponsesDto.LoginResponse(sessionToken.getToken(), sessionToken.getExpiresAt());
