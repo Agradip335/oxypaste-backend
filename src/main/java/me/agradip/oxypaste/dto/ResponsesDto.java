@@ -1,6 +1,7 @@
 package me.agradip.oxypaste.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import io.swagger.v3.oas.annotations.media.Schema;
 import me.agradip.oxypaste.model.Paste;
 
@@ -33,7 +34,10 @@ public class ResponsesDto {
 
             @JsonProperty("public")
             @Schema(description = "Indicates if the paste is public or private")
-            boolean isPublic
+            boolean isPublic,
+
+            @Schema(description = "Programming Language")
+            Paste.Language language
     ) {}
 
     @Schema(name = "Paste")

@@ -1,5 +1,8 @@
 package me.agradip.oxypaste.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.persistence.*;
 
 import java.security.SecureRandom;
@@ -146,17 +149,25 @@ public class Paste {
             this.value = value;
         }
 
+        @JsonValue
         public String getValue() {
             return value;
         }
 
-        public static Language fromValue(String value) {
+        @JsonCreator
+        public static Language fromValue(@JsonProperty("language") String value) {
+            if (value == null || value.isBlank()) {
+                return AUTO_DETECT;
+            }
+
             for (Language lang : values()) {
                 if (lang.value.equalsIgnoreCase(value)) {
                     return lang;
                 }
             }
+
             throw new IllegalArgumentException("Unknown language value: " + value);
         }
+
     }
 }

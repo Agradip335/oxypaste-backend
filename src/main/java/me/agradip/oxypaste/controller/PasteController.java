@@ -60,8 +60,8 @@ public class PasteController {
     }
 
     // Create a new paste
-    @PostMapping({"", "/"})
-//    @AuthRequired(strict = false)
+    @PostMapping("")
+    @AuthRequired(strict = false)
     @Operation(
             summary = "Create a new paste",
             description = """
@@ -179,7 +179,8 @@ public class PasteController {
                         paste.getTitle(),
                         paste.getUser() == null ? null : paste.getUser().getId().toString(),
                         paste.getCreatedAt(),
-                        true
+                        true,
+                        paste.getLanguage()
                 ))
                 .toList();
     }
@@ -203,7 +204,7 @@ public class PasteController {
                             paste.getCreatedAt(),
                             true,
                             paste.getContent(),
-                            paste.getLanguage()
+                            Paste.Language.AUTO_DETECT
                     );
                 })
                 .toList();
@@ -371,7 +372,8 @@ public class PasteController {
                         paste.getTitle(),
                         paste.getUser() == null ? null : paste.getUser().getId().toString(),
                         paste.getCreatedAt(),
-                        paste.getVisibility() == Paste.PasteVisibility.PUBLIC
+                        paste.getVisibility() == Paste.PasteVisibility.PUBLIC,
+                        paste.getLanguage()
                 ))
                 .toList();
     }
