@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -58,9 +57,9 @@ public class TokenService {
     }
 
     @Transactional
-    public boolean revokeToken(User user, String tokenStr) {
-        Optional<Token> tokenOpt = tokenRepository.findByToken(tokenStr);
-        if (tokenOpt.isPresent() && tokenOpt.get().getUser().equals(user)) {
+    public boolean revokeToken(User user, UUID id) {
+        Optional<Token> tokenOpt = tokenRepository.findById(id);
+        if (tokenOpt.isPresent() && tokenOpt.get().getUser().getId().equals(user.getId())) {
             tokenRepository.delete(tokenOpt.get());
             return true;
         }
@@ -68,8 +67,8 @@ public class TokenService {
     }
 
     @Transactional
-    public void revokeAllTokens(User user) {
-        tokenRepository.deleteByUser(user);
+    public void revokeAllTokens(User user, TokenType type) {
+        tokenRepository.deleteByUserAndType(user, type);
     }
 
     @Transactional
@@ -87,7 +86,7 @@ public class TokenService {
     }
 
     public int countActiveTokensForUser(UUID userId, TokenType type) {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         return tokenRepository.countByUserIdAndTypeAndExpiresAtAfter(userId, type, now);
     }
 

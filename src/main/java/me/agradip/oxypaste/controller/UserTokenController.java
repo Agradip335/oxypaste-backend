@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,7 +36,7 @@ public class UserTokenController {
     public TokenCreatedResponse createApiToken(
             @RequestParam String name,
             @RequestParam(required = false) String description,
-            @RequestParam(required = false) Long duration
+            @RequestParam(name = "expiry_duration", required = false) Long duration
     ) {
         User user = RestUtil.getCurrentUser();
 
@@ -50,7 +51,7 @@ public class UserTokenController {
         }
 
         Token token = tokenService.createToken(user, Token.TokenType.API, name, description, duration);
-        return new TokenCreatedResponse(token.getToken());
+        return new TokenCreatedResponse(token.getId(), token.getToken());
     }
 
     // List all API tokens
@@ -61,7 +62,7 @@ public class UserTokenController {
 
         List<TokenViewResponse> tokens = tokenService.getTokensForUser(user).stream()
                 .filter(token -> token.getType() == Token.TokenType.API) // Only return API tokens
-                .map(token -> new TokenViewResponse(token.getName(), token.getCreatedAt(), token.getExpiresAt()))
+                .map(token -> new TokenViewResponse(token.getId(), token.getName(), token.getCreatedAt(), token.getExpiresAt()))
                 .collect(Collectors.toList());
 
         return tokens;
@@ -70,12 +71,12 @@ public class UserTokenController {
     // Revoke a specific API token
     @DeleteMapping("/revoke")
     @AuthRequired(tokenType = Token.TokenType.SESSION)
-    public ResponseEntity<Void> revokeApiToken(Principal principal, @RequestParam String token) {
+    public ResponseEntity<Void> revokeApiToken(Principal principal, @RequestParam UUID token) {
         User user = RestUtil.getCurrentUser();
 
         boolean revoked = tokenService.revokeToken(user, token);
         if (!revoked) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            throw new ApiException(404, "Token doesn't exist");
         }
 
         return ResponseEntity.ok().build();
@@ -87,7 +88,7 @@ public class UserTokenController {
     public ResponseEntity<Void> revokeAllApiTokens(Principal principal) {
         User user = RestUtil.getCurrentUser();
 
-        tokenService.revokeAllTokens(user);
+        tokenService.revokeAllTokens(user, Token.TokenType.API);
         return ResponseEntity.ok().build();
     }
 }

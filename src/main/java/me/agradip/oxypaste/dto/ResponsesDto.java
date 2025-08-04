@@ -64,9 +64,9 @@ public class ResponsesDto {
     public record LoggedUserInfoResponse(UUID id, String username, String email, Instant createdAt) {}
 
     // Token-related responses
-    public record TokenCreatedResponse(String token) {}
+    public record TokenCreatedResponse(UUID id, String token) {}
 
-    public record TokenViewResponse(String name, Instant createdAt, Instant expiresAt) {}
+    public record TokenViewResponse(UUID id, String name, Instant createdAt, Instant expiresAt) {}
 
     public record TokenValidationResponse(boolean valid) {}
 

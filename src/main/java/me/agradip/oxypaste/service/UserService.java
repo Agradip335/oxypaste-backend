@@ -36,10 +36,7 @@ public class UserService {
     }
 
     public String registerUser(String username, String email, String password, String creationIp) {
-        String salt = BCrypt.gensalt();
-        String hashedPassword = BCrypt.hashpw(password, salt);
-
-        User user = new User(username, email, hashedPassword, salt, creationIp);
+        User user = new User(username, email, password, null, creationIp);
         Map<String, Object> payload = generatePayloadFromObject(user);
         String token = verificationTokenService.signPayload(payload);
 
