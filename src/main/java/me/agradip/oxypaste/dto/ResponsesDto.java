@@ -65,14 +65,13 @@ public class ResponsesDto {
 
     // Token-related responses
     public record TokenCreatedResponse(UUID id, String token) {}
-
     public record TokenViewResponse(UUID id, String name, Instant createdAt, Instant expiresAt) {}
-
     public record TokenValidationResponse(boolean valid) {}
-
     public record TokenRevokedResponse(boolean revoked) {}
 
     public record ErrorResponse(@Schema(description = "Message that describes the error") String error) {}
+
+    public record StatisticsResponse(long users, long pastes) {}
 
     public record RecaptchaResponseDto(
         boolean success,

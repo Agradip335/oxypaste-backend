@@ -34,6 +34,8 @@ public class PasteService {
         this.pasteRepository = pasteRepository;
     }
 
+    public long countPastes() { return pasteRepository.count(); }
+
     public Paste createPaste(Paste paste) {
         return pasteRepository.save(paste);
     }

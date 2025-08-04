@@ -35,6 +35,10 @@ public class UserService {
         this.verificationTokenService = verificationTokenService;
     }
 
+    public long countUsers() {
+        return userRepository.count();
+    }
+
     public String registerUser(String username, String email, String password, String creationIp) {
         User user = new User(username, email, password, null, creationIp);
         Map<String, Object> payload = generatePayloadFromObject(user);
