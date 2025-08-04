@@ -80,6 +80,7 @@ public class ResponsesDto {
     public record ErrorResponse(@Schema(description = "Message that describes the error") String error) {}
 
     public record StatisticsResponse(long users, long pastes) {}
+    public record VersionResponse(String version) {}
 
     public record RecaptchaResponseDto(
         boolean success,
