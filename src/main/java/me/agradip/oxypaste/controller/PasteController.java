@@ -61,7 +61,7 @@ public class PasteController {
 
     // Create a new paste
     @PostMapping("")
-    @AuthRequired(strict = false)
+    @AuthRequired(strict = false, bypassCheckIfSessionTokenProvided = true)
     @Operation(
             summary = "Create a new paste",
             description = """
@@ -136,7 +136,7 @@ public class PasteController {
                     return new ResponsesDto.PasteRetrieveResponse(
                             paste.getId(),
                             paste.getTitle(),
-                            paste.getUser() == null ? null : paste.getUser().getId().toString(),
+                            paste.getUser() == null ? null : paste.getUser().getUsername(),
                             paste.getCreatedAt(),
                             paste.getVisibility().equals(Paste.PasteVisibility.PUBLIC),
                             paste.getContent(),
@@ -177,7 +177,7 @@ public class PasteController {
                 .map(paste -> new ResponsesDto.PasteMetaResponse(
                         paste.getId(),
                         paste.getTitle(),
-                        paste.getUser() == null ? null : paste.getUser().getId().toString(),
+                        paste.getUser() == null ? null : paste.getUser().getUsername(),
                         paste.getCreatedAt(),
                         true,
                         paste.getLanguage()
@@ -370,7 +370,7 @@ public class PasteController {
                 .map(paste -> new ResponsesDto.PasteMetaResponse(
                         paste.getId(),
                         paste.getTitle(),
-                        paste.getUser() == null ? null : paste.getUser().getId().toString(),
+                        paste.getUser() == null ? null : paste.getUser().getUsername(),
                         paste.getCreatedAt(),
                         paste.getVisibility() == Paste.PasteVisibility.PUBLIC,
                         paste.getLanguage()

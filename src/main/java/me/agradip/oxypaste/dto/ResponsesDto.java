@@ -26,7 +26,7 @@ public class ResponsesDto {
             @Schema(description = "The title of the paste", nullable = true)
             String title,
 
-            @Schema(description = "UUID of the user who created the paste. 'root' is used instead if the paste is a root document.")
+            @Schema(description = "Username of the user who created the paste. 'root' is used instead if the paste is a root document.")
             String createdBy,
 
             @Schema(description = "Timestamp of when the paste was created")
