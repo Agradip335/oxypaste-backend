@@ -2,6 +2,7 @@ package me.agradip.oxypaste.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import me.agradip.oxypaste.model.Paste;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -54,7 +55,10 @@ public class ResponsesDto {
             boolean isPublic,
 
             @Schema(description = "The actual content of the paste")
-            String content
+            String content,
+
+            @Schema(description = "The programming language of the paste")
+            Paste.Language language
     ) {}
 
     // User-related responses

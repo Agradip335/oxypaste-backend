@@ -34,6 +34,9 @@ public class Paste {
     @Column(name = "visibility", nullable = false)
     private PasteVisibility visibility;
 
+    @Column(name = "language")
+    private Language language = Language.AUTO_DETECT;
+
     public Paste() {
         this.id = generateRandomId(PASTE_ID_LEN);
         this.createdAt = LocalDateTime.now();
@@ -97,6 +100,14 @@ public class Paste {
         this.visibility = visibility;
     }
 
+    public Language getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(Language language) {
+        this.language = language;
+    }
+
     private String generateRandomId(int len) {
         StringBuilder idBuilder = new StringBuilder(len);
         for (int i = 0; i < len; i++) {
@@ -108,5 +119,44 @@ public class Paste {
 
     public enum PasteVisibility {
         PUBLIC, PRIVATE
+    }
+
+    public enum Language {
+        AUTO_DETECT(""),
+        PLAINTEXT("plaintext"),
+        JAVASCRIPT("javascript"),
+        CSS("css"),
+        PYTHON("python"),
+        TYPESCRIPT("typescript"),
+        JAVA("java"),
+        C("c"),
+        CPP("cpp"),
+        GO("go"),
+        RUST("rs"),
+        PHP("php"),
+        RUBY("ruby"),
+        BASH("bash"),
+        JSON("json"),
+        YAML("yaml"),
+        MARKDOWN("markdown");
+
+        private final String value;
+
+        Language(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public static Language fromValue(String value) {
+            for (Language lang : values()) {
+                if (lang.value.equalsIgnoreCase(value)) {
+                    return lang;
+                }
+            }
+            throw new IllegalArgumentException("Unknown language value: " + value);
+        }
     }
 }
