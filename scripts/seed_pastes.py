@@ -7,10 +7,11 @@ API_URL = "http://localhost:8080/api/pastes"
 NUM_PASTES = 25
 AUTH_TOKEN = None  # Optional: e.g., "Bearer eyJhbGciOi..."
 
-# Sample structured data of languages and their code samples
+# Sample structured data with associated languages
 PASTE_TEMPLATES = [
     {
         "title": "FizzBuzz in Python",
+        "language": "python",
         "content": '''for i in range(1, 101):
     if i % 15 == 0:
         print("FizzBuzz")
@@ -20,10 +21,11 @@ PASTE_TEMPLATES = [
         print("Buzz")
     else:
         print(i)
-''',
+'''
     },
     {
         "title": "Simple Express Server",
+        "language": "javascript",
         "content": '''const express = require("express");
 const app = express();
 
@@ -34,28 +36,31 @@ app.get("/", (req, res) => {
 app.listen(3000, () => {
   console.log("Server running on port 3000");
 });
-''',
+'''
     },
     {
         "title": "Bash: CPU Usage Monitor",
+        "language": "bash",
         "content": '''#!/bin/bash
 while true; do
   top -b -n1 | grep "Cpu(s)"
   sleep 5
 done
-''',
+'''
     },
     {
         "title": "SQL: Get Active Users",
+        "language": "plaintext",  # Assuming SQL is treated as plaintext
         "content": '''SELECT id, username, email
 FROM users
 WHERE status = 'active'
 ORDER BY created_at DESC
 LIMIT 50;
-''',
+'''
     },
     {
         "title": "Java: Reverse a String",
+        "language": "java",
         "content": '''public class ReverseString {
     public static void main(String[] args) {
         String input = "OpenAI";
@@ -63,10 +68,11 @@ LIMIT 50;
         System.out.println(reversed);
     }
 }
-''',
+'''
     },
     {
         "title": "Python: JSON Pretty Printer",
+        "language": "python",
         "content": '''import json
 
 data = {
@@ -76,10 +82,11 @@ data = {
 }
 
 print(json.dumps(data, indent=4))
-''',
+'''
     },
     {
         "title": "Next.js Page Example",
+        "language": "typescript",  # Next.js commonly uses TS
         "content": '''import React from "react";
 
 export default function Home() {
@@ -89,10 +96,11 @@ export default function Home() {
     </div>
   );
 }
-''',
+'''
     },
     {
         "title": "Dockerfile: Node.js App",
+        "language": "plaintext",  # Dockerfile treated as plaintext
         "content": '''FROM node:18
 
 WORKDIR /app
@@ -102,7 +110,7 @@ COPY . .
 
 EXPOSE 3000
 CMD ["npm", "start"]
-''',
+'''
     }
 ]
 
@@ -110,15 +118,17 @@ def generate_paste():
     paste = random.choice(PASTE_TEMPLATES)
     title = paste["title"]
     content = paste["content"]
+    language = paste["language"]
 
-    # Add variation
+    # Add random UUID tag to some titles
     if random.random() < 0.3:
         title += f" ({uuid.uuid4().hex[:4]})"
 
     return {
         "title": title,
         "content": content,
-        "public": True
+        "public": True,
+        "language": language
     }
 
 def send_paste(paste):

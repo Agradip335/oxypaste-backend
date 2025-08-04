@@ -60,8 +60,8 @@ public class PasteController {
     }
 
     // Create a new paste
-    @PostMapping({"", "/"})
-//    @AuthRequired(strict = false)
+    @PostMapping("")
+    @AuthRequired(strict = false, bypassCheckIfSessionTokenProvided = true)
     @Operation(
             summary = "Create a new paste",
             description = """
@@ -87,6 +87,13 @@ public class PasteController {
         Paste paste = new Paste(request.content(), user);
         if(request.title() != null) paste.setTitle(request.title());
         if(request.isPublic()) paste.setVisibility(Paste.PasteVisibility.PUBLIC);
+
+        try {
+            Paste.Language language = Paste.Language.fromValue(request.language());
+            paste.setLanguage(language);
+        } catch (IllegalArgumentException e) {
+            throw new ApiException(400, "Unknown language value: " + request.language());
+        }
 
         Paste createdPaste = pasteService.createPaste(paste);
 
@@ -118,7 +125,8 @@ public class PasteController {
                         "root",
                         rootPaste.getCreatedAt(),
                         true,
-                        rootPaste.getContent()
+                        rootPaste.getContent(),
+                        Paste.Language.AUTO_DETECT
                 );
             }
         }
@@ -128,10 +136,11 @@ public class PasteController {
                     return new ResponsesDto.PasteRetrieveResponse(
                             paste.getId(),
                             paste.getTitle(),
-                            paste.getUser() == null ? null : paste.getUser().getId().toString(),
+                            paste.getUser() == null ? null : paste.getUser().getUsername(),
                             paste.getCreatedAt(),
                             paste.getVisibility().equals(Paste.PasteVisibility.PUBLIC),
-                            paste.getContent()
+                            paste.getContent(),
+                            paste.getLanguage()
                     );
                 })
                 .orElseThrow(() -> new PasteExceptions.PasteNotFound(id));
@@ -168,9 +177,10 @@ public class PasteController {
                 .map(paste -> new ResponsesDto.PasteMetaResponse(
                         paste.getId(),
                         paste.getTitle(),
-                        paste.getUser() == null ? null : paste.getUser().getId().toString(),
+                        paste.getUser() == null ? null : paste.getUser().getUsername(),
                         paste.getCreatedAt(),
-                        true
+                        true,
+                        paste.getLanguage()
                 ))
                 .toList();
     }
@@ -193,7 +203,8 @@ public class PasteController {
                             "root",
                             paste.getCreatedAt(),
                             true,
-                            paste.getContent()
+                            paste.getContent(),
+                            Paste.Language.AUTO_DETECT
                     );
                 })
                 .toList();
@@ -359,9 +370,10 @@ public class PasteController {
                 .map(paste -> new ResponsesDto.PasteMetaResponse(
                         paste.getId(),
                         paste.getTitle(),
-                        paste.getUser() == null ? null : paste.getUser().getId().toString(),
+                        paste.getUser() == null ? null : paste.getUser().getUsername(),
                         paste.getCreatedAt(),
-                        paste.getVisibility() == Paste.PasteVisibility.PUBLIC
+                        paste.getVisibility() == Paste.PasteVisibility.PUBLIC,
+                        paste.getLanguage()
                 ))
                 .toList();
     }

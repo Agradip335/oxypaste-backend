@@ -1,5 +1,8 @@
 package me.agradip.oxypaste.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.persistence.*;
 
 import java.security.SecureRandom;
@@ -33,6 +36,9 @@ public class Paste {
 
     @Column(name = "visibility", nullable = false)
     private PasteVisibility visibility;
+
+    @Column(name = "language")
+    private Language language = Language.AUTO_DETECT;
 
     public Paste() {
         this.id = generateRandomId(PASTE_ID_LEN);
@@ -97,6 +103,14 @@ public class Paste {
         this.visibility = visibility;
     }
 
+    public Language getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(Language language) {
+        this.language = language;
+    }
+
     private String generateRandomId(int len) {
         StringBuilder idBuilder = new StringBuilder(len);
         for (int i = 0; i < len; i++) {
@@ -108,5 +122,52 @@ public class Paste {
 
     public enum PasteVisibility {
         PUBLIC, PRIVATE
+    }
+
+    public enum Language {
+        AUTO_DETECT(""),
+        PLAINTEXT("plaintext"),
+        JAVASCRIPT("javascript"),
+        CSS("css"),
+        PYTHON("python"),
+        TYPESCRIPT("typescript"),
+        JAVA("java"),
+        C("c"),
+        CPP("cpp"),
+        GO("go"),
+        RUST("rs"),
+        PHP("php"),
+        RUBY("ruby"),
+        BASH("bash"),
+        JSON("json"),
+        YAML("yaml"),
+        MARKDOWN("markdown");
+
+        private final String value;
+
+        Language(String value) {
+            this.value = value;
+        }
+
+        @JsonValue
+        public String getValue() {
+            return value;
+        }
+
+        @JsonCreator
+        public static Language fromValue(@JsonProperty("language") String value) {
+            if (value == null || value.isBlank()) {
+                return AUTO_DETECT;
+            }
+
+            for (Language lang : values()) {
+                if (lang.value.equalsIgnoreCase(value)) {
+                    return lang;
+                }
+            }
+
+            throw new IllegalArgumentException("Unknown language value: " + value);
+        }
+
     }
 }

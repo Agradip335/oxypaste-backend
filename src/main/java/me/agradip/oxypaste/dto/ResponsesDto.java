@@ -1,7 +1,9 @@
 package me.agradip.oxypaste.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import io.swagger.v3.oas.annotations.media.Schema;
+import me.agradip.oxypaste.model.Paste;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -24,7 +26,7 @@ public class ResponsesDto {
             @Schema(description = "The title of the paste", nullable = true)
             String title,
 
-            @Schema(description = "UUID of the user who created the paste. 'root' is used instead if the paste is a root document.")
+            @Schema(description = "Username of the user who created the paste. 'root' is used instead if the paste is a root document.")
             String createdBy,
 
             @Schema(description = "Timestamp of when the paste was created")
@@ -32,7 +34,10 @@ public class ResponsesDto {
 
             @JsonProperty("public")
             @Schema(description = "Indicates if the paste is public or private")
-            boolean isPublic
+            boolean isPublic,
+
+            @Schema(description = "Programming Language")
+            Paste.Language language
     ) {}
 
     @Schema(name = "Paste")
@@ -54,7 +59,10 @@ public class ResponsesDto {
             boolean isPublic,
 
             @Schema(description = "The actual content of the paste")
-            String content
+            String content,
+
+            @Schema(description = "The programming language of the paste")
+            Paste.Language language
     ) {}
 
     // User-related responses
@@ -72,6 +80,7 @@ public class ResponsesDto {
     public record ErrorResponse(@Schema(description = "Message that describes the error") String error) {}
 
     public record StatisticsResponse(long users, long pastes) {}
+    public record VersionResponse(String version) {}
 
     public record RecaptchaResponseDto(
         boolean success,

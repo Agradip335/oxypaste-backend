@@ -2,8 +2,6 @@ package me.agradip.oxypaste.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.annotation.Nullable;
-import me.agradip.oxypaste.model.Paste;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 public class RequestsDto {
@@ -17,6 +15,10 @@ public class RequestsDto {
             @JsonProperty("public")
             @DefaultValue(value = "false")
             @Schema(description = "If the paste is public or not", defaultValue = "false", nullable = true)
-            boolean isPublic
+            boolean isPublic,
+
+            @DefaultValue(value = "")
+            @Schema(description = "The language of the paste", defaultValue = "", nullable = true)
+            String language
     ) {}
 }
